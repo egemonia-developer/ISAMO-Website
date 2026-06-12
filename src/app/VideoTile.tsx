@@ -51,6 +51,10 @@ export function VideoTile({ src, style, lazy = false, videoRef }: VideoTileProps
       src={load ? resolvedSrc : undefined}
       muted loop playsInline
       preload={load ? 'metadata' : 'none'}
+      // Safari renders preload="metadata" videos as a blank frame until a seek
+      // actually decodes a frame — nudge it once metadata is in so the poster
+      // frame appears without requiring playback.
+      onLoadedMetadata={e => { const v = e.currentTarget; if (v.currentTime === 0) v.currentTime = 0.01; }}
       onError={() => setFailed(true)}
       style={style}
     />
