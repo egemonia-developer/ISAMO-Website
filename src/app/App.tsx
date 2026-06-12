@@ -212,7 +212,7 @@ function IntroTransition({ onDone }: { onDone: () => void }) {
 
 // Single-button language toggle: short labels + cycle order (matches the old
 // It / Fr / En / Jp row order).
-const LANG_SHORT: Record<Lang, string> = { en: 'En', it: 'It', fr: 'Fr', jp: 'Jp' };
+const LANG_SHORT: Record<Lang, string> = { en: 'EN', it: 'IT', fr: 'FR', jp: 'JP' };
 const LANG_CYCLE: Lang[] = ['it', 'fr', 'en', 'jp'];
 
 export default function App() {

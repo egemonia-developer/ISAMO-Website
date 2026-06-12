@@ -10,6 +10,17 @@ html, body {
   cursor: url('/icons/cursor.svg') 10 10, crosshair;
 }
 
+/* This is an app UI, not a document — disable text selection everywhere
+   except inside editable fields (search bar, etc.), where it's needed. */
+* {
+  user-select: none;
+  -webkit-user-select: none;
+}
+input, textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 /* Hide scrollbars while keeping the element scrollable (Board grid, etc.). */
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { width: 0; height: 0; display: none; }

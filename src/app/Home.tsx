@@ -2,7 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useMemo, type ReactNode, 
 import { type Lang, LANGS, getStrings, tLabel } from './i18n/strings';
 
 // Native display name for each UI language (shown in the Settings → Language picker)
-const LANG_DISPLAY: Record<Lang, string> = { en: 'English', it: 'Italiano', fr: 'Français', jp: '日本語' };
+const LANG_DISPLAY: Record<Lang, string> = { en: 'ENGLISH', it: 'ITALIANO', fr: 'FRANÇAIS', jp: '日本語' };
 import { useGamepadNav } from './hooks/useGamepadNav';
 import { cursorState } from './hooks/cursorState';
 import { playUi, setUiMuted, setUiVolume } from './audio/uiSounds';
@@ -5701,10 +5701,6 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                         </motion.div>
                       );
                     })()}
-
-                    {/* ── Thin divider between effects row and progress bar ── */}
-                    <div style={{ position: 'absolute', top: TRANSPORT_FX_H, left: 0, right: 0,
-                      height: 1, background: 'var(--ui-fg)', opacity: 0.08 }} />
 
                     {/* Progress bar — scrubber + in/out handles */}
                     <motion.div
