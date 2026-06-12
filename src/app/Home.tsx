@@ -3899,14 +3899,14 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
               fontSize: FS_SMALL, fontFamily: FONT, color: 'var(--ui-fg)', letterSpacing: '0.04em', lineHeight: 1.3,
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', gap: 6 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', width: 'max-content', gap: 6 }}>
               {S.pressPrefix}
-              <Icon name="key-enter" size={FS_SMALL} color="var(--ui-complement)" style={{ alignSelf: 'baseline' }} />
+              <Icon name="key-enter" size={FS_SMALL} color="var(--ui-complement)" style={{ alignSelf: 'center' }} />
               {S.fxEnterHint}
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', gap: 6 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', width: 'max-content', gap: 6 }}>
               {S.pressPrefix}
-              <Icon name="esc" size={FS_SMALL} color="var(--ui-complement)" style={{ alignSelf: 'baseline' }} />
+              <Icon name="esc" size={FS_SMALL} color="var(--ui-complement)" style={{ alignSelf: 'center' }} />
               {S.fxEscHint}
             </span>
           </motion.div>
@@ -4274,11 +4274,14 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                     src={currentZPreviewSrc}
                     autoPlay loop muted playsInline
                     onLoadedMetadata={e => nudgeVideoFrame(e.currentTarget)}
+                    onLoadedData={e => { e.currentTarget.style.opacity = '1'; }}
                     style={{
                       position: 'absolute', inset: 0,
                       width: '100%', height: '100%',
                       objectFit: currentZPreviewFit,
                       objectPosition: 'center',
+                      opacity: 0,
+                      transition: 'opacity 0.15s ease',
                     }}
                   />
                 ) : (
@@ -4963,7 +4966,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                                color: 'var(--ui-fg)', letterSpacing: '0.04em',
                                fontFamily: FONT, whiteSpace: 'pre-line' }}
                     >
-                      Added to Board.{'\n'}ISAMO is categorizing your clip.
+                      Added to Board.{'\n'}(ISAMO !) is categorizing your clip.
                     </motion.p>
                   ) : (
                     <motion.div key="prompt" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>

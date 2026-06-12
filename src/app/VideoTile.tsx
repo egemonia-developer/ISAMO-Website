@@ -28,6 +28,7 @@ interface VideoTileProps {
  */
 export function VideoTile({ src, style, videoRef }: VideoTileProps) {
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const lowConnection = useLowConnection();
 
   if (failed) {
@@ -43,8 +44,9 @@ export function VideoTile({ src, style, videoRef }: VideoTileProps) {
       muted loop playsInline
       preload="metadata"
       onLoadedMetadata={e => nudgeVideoFrame(e.currentTarget)}
+      onLoadedData={() => setLoaded(true)}
       onError={() => setFailed(true)}
-      style={style}
+      style={{ ...style, opacity: loaded ? 1 : 0, transition: 'opacity 0.15s ease' }}
     />
   );
 }

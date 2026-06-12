@@ -55,35 +55,35 @@ const EN: LangStrings = {
   pressPrefix:  'Press ',
   pressOr:      ' or ',
   pressSuffix:  ' to start',
-  navHint1:     'ISAMO is primarily designed for keyboard navigation.',
+  navHint1:     '(ISAMO !) is primarily designed for keyboard navigation.',
   navHintUse:   'Use',
   navHintExplore: 'to explore.',
 
   welcomeText:
-    "ISAMO (Intelligent Sound And Motion Organiser) is an open-source sound library " +
+    "(ISAMO !) (Intelligent Sound And Motion Organiser) is an open-source sound library " +
     "aimed at graphic designers, motion designers and visual artists.",
 
   ttsPhrases: [
-    "ISAMO invites the user to explore the sound bank, categorised on the basis of " +
+    "(ISAMO !) invites the user to explore the sound bank, categorised on the basis of " +
       "movements and archetypes derived directly from the field of motion graphics. " +
       "Each sound has been meticulously crafted to best represent these characteristics.",
     'FUCK BENJAMIN NETHANYAHU !!!!!!!',
     "I'm sorry. I had to.",
-    "ISAMO allows users to play, edit and download the sounds available " +
+    "(ISAMO !) allows users to play, edit and download the sounds available " +
       "directly in-app. The Library section implies no copyright restrictions.",
     "You can upload your own videos in the Sound Player section in order to get " +
       "a preview of the sound applied to your work.",
-    "ISAMO is still in development. It will be freely available when it's ready.",
+    "(ISAMO !) is still in development. It will be freely available when it's ready.",
     'hope so lol',
     'enough',
     'please',
     'turn up the volume, coward',
     'NOG7 14 JUNE 2026 !',
-    "I have nothing more to tell you in this version of ISAMO; enjoy using the app!",
+    "I have nothing more to tell you in this version of (ISAMO !); enjoy using the app!",
   ],
 
   uploadText:      "Upload your clip,\nThe playback will be sync to the sound you've chosen.",
-  boardUploadText: "Upload your clip,\nISAMO will recognize and categorize it for the Board.",
+  boardUploadText: "Upload your clip,\n(ISAMO !) will recognize and categorize it for the Board.",
 
   soundPlayerHintSuffix:     'to open the Sound Player.',
   soundPlayerHintSuffixCtrl: ' to open the Sound Player.',
@@ -91,17 +91,17 @@ const EN: LangStrings = {
   accountWip: 'The account section is still a work in progress!',
 
   onlineInfoText:
-    "In its final version, ISAMO will feature, in the community section, the Board: a moodboard " +
+    "In its final version, (ISAMO !) will feature, in the community section, the Board: a moodboard " +
     "showing a mix of videos uploaded by users using the sounds available in the app, alongside " +
     "a selection of videos by previously selected artists and designers.",
 
   artistBios: {
-    '...': "In its final version, ISAMO will feature sound packs created by various artists. This section therefore offers an example of what the Artists section will provide.",
+    '...': "In its final version, (ISAMO !) will feature sound packs created by various artists. This section therefore offers an example of what the Artists section will provide.",
     Egemonia:  'Sound designer and visual artist. His work explores the relationship between sound and moving image, developing sonic textures built to inhabit graphic spaces in constant transformation.',
     'Kay Yoko': 'Composer and sound researcher. Her packs move between minimalism and density, offering material suited to sustain slow or frantic visual sequences with equal coherence.',
     Maclow:    'Producer and sound artist. His sounds grow from field recordings elaborated until they become abstract elements, conceived to be applied to motion graphics.',
     Rusowsky:  'Musician and producer. His sonic research spans genres and formats, producing packs capable of adapting to heterogeneous graphic contexts while keeping a recognisable centre.',
-    Sampha:    'Artist and composer. The sounds selected for ISAMO reflect his ability to build interior landscapes through essential elements, suited to accompany images in motion.',
+    Sampha:    'Artist and composer. The sounds selected for (ISAMO !) reflect his ability to build interior landscapes through essential elements, suited to accompany images in motion.',
   },
 
   fxExplanations: {
@@ -114,10 +114,10 @@ const EN: LangStrings = {
   },
 
   navExplanations: {
-    Library:   "ISAMO's sound library, organised by motion-design movements and archetypes.",
-    Community: "ISAMO's community space: the Board and contributions from its users.",
+    Library:   "(ISAMO !)'s sound library, organised by motion-design movements and archetypes.",
+    Community: "(ISAMO !)'s community space: the Board and contributions from its users.",
     Artists:   'Sound packs crafted by a selection of invited artists and designers.',
-    Settings:  'ISAMO settings: audio, display, language and account.',
+    Settings:  '(ISAMO !) settings: audio, display, language and account.',
     // Library X
     Movement: 'Sounds tied to an element moving through space.',
     Camera:   'Sounds tied to camera moves and cuts.',
@@ -134,7 +134,7 @@ const EN: LangStrings = {
     Ambient:  'Ambient atmospheres and sonic beds.',
     Voices:   'Background voices and vocal textures.',
     // Community X
-    Board:  'A moodboard of clips uploaded by the community using ISAMO sounds.',
+    Board:  'A moodboard of clips uploaded by the community using (ISAMO !) sounds.',
     Upload: 'Upload your own clip to add it to the Board.',
     // Settings X
     Audio:    'Audio settings and the synthetic voice (TTS).',
@@ -154,36 +154,36 @@ const IT: LangStrings = {
   pressPrefix:  'Premi ',
   pressOr:      ' o ',
   pressSuffix:  ' per iniziare',
-  navHint1:     "ISAMO preferisce l'utilizzazione principale della tastiera per la navigazione.",
+  navHint1:     "(ISAMO !) preferisce l'utilizzazione principale della tastiera per la navigazione.",
   navHintUse:   'Usa',
   navHintExplore: 'per esplorare.',
 
   welcomeText:
-    "ISAMO (Intelligent Sound And Motion Organiser) è una sound library open-source " +
+    "(ISAMO !) (Intelligent Sound And Motion Organiser) è una sound library open-source " +
     "indirizzata a designer grafici, motion designers e visual artists.",
 
   ttsPhrases: [
-    "ISAMO propone all'utente di esplorare la banca suoni, categorizzata sulla base di " +
+    "(ISAMO !) propone all'utente di esplorare la banca suoni, categorizzata sulla base di " +
       "movimenti e archetipi derivanti direttamente dall'ambito della grafica animata. " +
       "Ogni suono è stato meticolosamente realizzato allo scopo di rappresentare al meglio " +
       "tali caratteristiche.",
     'FUCK BENJAMIN NETHANYAHU !!!!!!!',
     'Scusami. Dovevo.',
-    "ISAMO permette agli utenti di riprodurre, modificare e scaricare i suoni presenti " +
+    "(ISAMO !) permette agli utenti di riprodurre, modificare e scaricare i suoni presenti " +
       "direttamente in-app. La sezione Libreria non implica limiti di diritti d'autore.",
     "È possibile uplodare i propri video nella sezione Sound Player allo scopo di avere " +
       "un anteprima del suono applicato ai lavori dell'utente.",
-    'ISAMO è ancora in sviluppo. Sarà disponibile liberamente quando sarà pronto.',
+    '(ISAMO !) è ancora in sviluppo. Sarà disponibile liberamente quando sarà pronto.',
     'spero lol',
     'basta',
     'ti prego',
     'alza il volume, codardo',
     'NOG7 14 JUIN 2026 !',
-    "Non ho più nulla da raccontarti in questa versione di ISAMO; divertiti a utilizzare l'app!",
+    "Non ho più nulla da raccontarti in questa versione di (ISAMO !); divertiti a utilizzare l'app!",
   ],
 
   uploadText:      "Carica il tuo clip,\nLa riproduzione sarà sincronizzata al suono che hai scelto.",
-  boardUploadText: "Carica il tuo clip,\nISAMO lo riconoscerà e lo categorizzerà per la Board.",
+  boardUploadText: "Carica il tuo clip,\n(ISAMO !) lo riconoscerà e lo categorizzerà per la Board.",
 
   soundPlayerHintSuffix:     'per aprire il Sound Player.',
   soundPlayerHintSuffixCtrl: ' per aprire il Sound Player.',
@@ -191,17 +191,17 @@ const IT: LangStrings = {
   accountWip: 'La sezione account è ancora un work in progress!',
 
   onlineInfoText:
-    "ISAMO, nella sua versione finale, presenterà nella sezione community la Board, un moodboard " +
+    "(ISAMO !), nella sua versione finale, presenterà nella sezione community la Board, un moodboard " +
     "presentante un mix di video caricati dagli utenti utilizzanti i suoni disponibili " +
     "nell'applicazione e una selezione di video di artisti e designer selezionati in precedenza.",
 
   artistBios: {
-    '...': 'ISAMO, nella versione finale, presenterà dei sound packs realizzati da diversi artisti. In questa sezione trovi dunque un esempio di ciò che la sezione Artists proporrà.',
+    '...': '(ISAMO !), nella versione finale, presenterà dei sound packs realizzati da diversi artisti. In questa sezione trovi dunque un esempio di ciò che la sezione Artists proporrà.',
     Egemonia:  'Sound designer e visual artist. Il suo lavoro esplora la relazione tra suono e immagine in movimento, sviluppando texture sonore costruite per abitare spazi grafici in continua trasformazione.',
     'Kay Yoko': 'Compositrice e ricercatrice del suono. I suoi pack si muovono tra minimalismo e densità, offrendo materiale adatto a sostenere sequenze visive lente o frenetiche con la stessa coerenza.',
     Maclow:    'Produttore e sound artist. I suoi suoni nascono da registrazioni sul campo elaborate fino a diventare elementi astratti, pensati per essere applicati su supporti grafici in movimento.',
     Rusowsky:  'Musicista e producer. La sua ricerca sonora attraversa generi e formati, producendo pack capaci di adattarsi a contesti grafici eterogenei mantenendo un centro riconoscibile.',
-    Sampha:    'Artista e compositore. I suoni selezionati per ISAMO riflettono la sua capacità di costruire paesaggi interni attraverso elementi essenziali, adatti ad accompagnare immagini in movimento.',
+    Sampha:    'Artista e compositore. I suoni selezionati per (ISAMO !) riflettono la sua capacità di costruire paesaggi interni attraverso elementi essenziali, adatti ad accompagnare immagini in movimento.',
   },
 
   fxExplanations: {
@@ -214,10 +214,10 @@ const IT: LangStrings = {
   },
 
   navExplanations: {
-    Library:   'La libreria di suoni di ISAMO, organizzata per movimenti e archetipi del motion design.',
-    Community: 'Lo spazio community di ISAMO: la Board e i contributi degli utenti.',
+    Library:   'La libreria di suoni di (ISAMO !), organizzata per movimenti e archetipi del motion design.',
+    Community: 'Lo spazio community di (ISAMO !): la Board e i contributi degli utenti.',
     Artists:   'Sound pack realizzati da una selezione di artisti e designer invitati.',
-    Settings:  'Le impostazioni di ISAMO: audio, schermo, lingua e account.',
+    Settings:  'Le impostazioni di (ISAMO !): audio, schermo, lingua e account.',
     // Library X
     Movement: 'Suoni legati al movimento di un elemento nello spazio.',
     Camera:   'Suoni legati ai movimenti e ai tagli di camera.',
@@ -234,7 +234,7 @@ const IT: LangStrings = {
     Ambient:  'Atmosfere e tappeti sonori ambientali.',
     Voices:   'Voci e texture vocali di sottofondo.',
     // Community X
-    Board:  'Una moodboard di video caricati dalla community con i suoni di ISAMO.',
+    Board:  'Una moodboard di video caricati dalla community con i suoni di (ISAMO !).',
     Upload: 'Carica un tuo video per aggiungerlo alla Board.',
     // Settings X
     Audio:    'Impostazioni audio e della voce sintetica (TTS).',
@@ -256,36 +256,36 @@ const FR: LangStrings = {
   pressPrefix:  'Appuyez ',
   pressOr:      ' ou ',
   pressSuffix:  ' pour commencer',
-  navHint1:     'ISAMO est conçu principalement pour une navigation au clavier.',
+  navHint1:     '(ISAMO !) est conçu principalement pour une navigation au clavier.',
   navHintUse:   'Utilisez',
   navHintExplore: 'pour explorer.',
 
   welcomeText:
-    "ISAMO (Intelligent Sound And Motion Organiser) est une bibliothèque sonore open-source " +
+    "(ISAMO !) (Intelligent Sound And Motion Organiser) est une bibliothèque sonore open-source " +
     "destinée aux designers graphiques, motion designers et artistes visuels.",
 
   ttsPhrases: [
-    "ISAMO propose à l'utilisateur d'explorer la banque de sons, catégorisée selon des " +
+    "(ISAMO !) propose à l'utilisateur d'explorer la banque de sons, catégorisée selon des " +
       "mouvements et archétypes issus directement du domaine du motion design. Chaque son " +
       "a été méticuleusement réalisé pour représenter au mieux ces caractéristiques.",
     'FUCK BENJAMIN NETHANYAHU !!!!!!!',
     "Désolé. Je devais le faire.",
-    "ISAMO permet aux utilisateurs d'écouter, modifier et télécharger les sons disponibles " +
+    "(ISAMO !) permet aux utilisateurs d'écouter, modifier et télécharger les sons disponibles " +
       "directement dans l'application. La section Bibliothèque n'implique aucune limite de " +
       "droits d'auteur.",
     "Il est possible d'importer vos propres vidéos dans la section Sound Player afin " +
       "d'avoir un aperçu du son appliqué à vos travaux.",
-    "ISAMO est encore en développement. Il sera disponible gratuitement quand il sera prêt.",
+    "(ISAMO !) est encore en développement. Il sera disponible gratuitement quand il sera prêt.",
     "j'espère lol",
     'stop',
     "je t'en supplie",
     'monte le son, lâche',
     'NOG7 14 JUIN 2026 !',
-    "Je n'ai plus rien à te raconter dans cette version d'ISAMO ; amuse-toi bien avec l'app !",
+    "Je n'ai plus rien à te raconter dans cette version d'(ISAMO !) ; amuse-toi bien avec l'app !",
   ],
 
   uploadText:      "Importez votre clip,\nLa lecture sera synchronisée au son que vous avez choisi.",
-  boardUploadText: "Importez votre clip,\nISAMO le reconnaîtra et le catégorisera pour le Board.",
+  boardUploadText: "Importez votre clip,\n(ISAMO !) le reconnaîtra et le catégorisera pour le Board.",
 
   soundPlayerHintSuffix:     'pour ouvrir le Sound Player.',
   soundPlayerHintSuffixCtrl: ' pour ouvrir le Sound Player.',
@@ -293,18 +293,18 @@ const FR: LangStrings = {
   accountWip: "La section compte est encore en cours de développement !",
 
   onlineInfoText:
-    "Dans sa version finale, ISAMO proposera, dans la section communauté, la Board : un moodboard " +
+    "Dans sa version finale, (ISAMO !) proposera, dans la section communauté, la Board : un moodboard " +
     "présentant un mélange de vidéos publiées par les utilisateurs utilisant les sons disponibles " +
     "dans l'application, ainsi qu'une sélection de vidéos d'artistes et de designers sélectionnés " +
     "au préalable.",
 
   artistBios: {
-    '...': "Dans sa version finale, ISAMO proposera des sound packs réalisés par différents artistes. Cette section présente donc un exemple de ce que proposera la section Artists.",
+    '...': "Dans sa version finale, (ISAMO !) proposera des sound packs réalisés par différents artistes. Cette section présente donc un exemple de ce que proposera la section Artists.",
     Egemonia:  "Sound designer et artiste visuel. Son travail explore la relation entre le son et l'image en mouvement, développant des textures sonores conçues pour habiter des espaces graphiques en transformation constante.",
     'Kay Yoko': "Compositrice et chercheuse en son. Ses packs oscillent entre minimalisme et densité, offrant un matériau adapté pour soutenir des séquences visuelles lentes ou frénétiques avec la même cohérence.",
     Maclow:    "Producteur et sound artist. Ses sons naissent d'enregistrements de terrain retravaillés jusqu'à devenir des éléments abstraits, conçus pour être appliqués à des supports graphiques en mouvement.",
     Rusowsky:  "Musicien et producteur. Sa recherche sonore traverse les genres et les formats, produisant des packs capables de s'adapter à des contextes graphiques hétérogènes tout en conservant un centre reconnaissable.",
-    Sampha:    "Artiste et compositeur. Les sons sélectionnés pour ISAMO reflètent sa capacité à construire des paysages intérieurs à travers des éléments essentiels, adaptés pour accompagner des images en mouvement.",
+    Sampha:    "Artiste et compositeur. Les sons sélectionnés pour (ISAMO !) reflètent sa capacité à construire des paysages intérieurs à travers des éléments essentiels, adaptés pour accompagner des images en mouvement.",
   },
 
   fxExplanations: {
@@ -317,10 +317,10 @@ const FR: LangStrings = {
   },
 
   navExplanations: {
-    Library:   "La bibliothèque sonore d'ISAMO, organisée par mouvements et archétypes du motion design.",
-    Community: "L'espace communauté d'ISAMO : le Board et les contributions des utilisateurs.",
+    Library:   "La bibliothèque sonore d'(ISAMO !), organisée par mouvements et archétypes du motion design.",
+    Community: "L'espace communauté d'(ISAMO !) : le Board et les contributions des utilisateurs.",
     Artists:   "Des sound packs réalisés par une sélection d'artistes et de designers invités.",
-    Settings:  "Les réglages d'ISAMO : audio, affichage, langue et compte.",
+    Settings:  "Les réglages d'(ISAMO !) : audio, affichage, langue et compte.",
     // Library X
     Movement: "Sons liés au déplacement d'un élément dans l'espace.",
     Camera:   "Sons liés aux mouvements et aux coupes de caméra.",
@@ -337,7 +337,7 @@ const FR: LangStrings = {
     Ambient:  "Atmosphères et nappes sonores d'ambiance.",
     Voices:   "Voix et textures vocales de fond.",
     // Community X
-    Board:  "Une moodboard de clips publiés par la communauté avec les sons d'ISAMO.",
+    Board:  "Une moodboard de clips publiés par la communauté avec les sons d'(ISAMO !).",
     Upload: "Importez votre clip pour l'ajouter au Board.",
     // Settings X
     Audio:    "Réglages audio et de la voix de synthèse (TTS).",
@@ -358,36 +358,36 @@ const JP: LangStrings = {
   pressPrefix:  '',
   pressOr:      ' または ',
   pressSuffix:  ' を押してスタート',
-  navHint1:     'ISAMOは主にキーボード操作向けに設計されています。',
+  navHint1:     '(ISAMO !)は主にキーボード操作向けに設計されています。',
   navHintUse:   '',
   navHintExplore: 'で探索できます。',
 
   welcomeText:
-    'ISAMO（インテリジェント・サウンド・アンド・モーション・オーガナイザー）は、' +
+    '(ISAMO !)（インテリジェント・サウンド・アンド・モーション・オーガナイザー）は、' +
     'グラフィックデザイナー、モーションデザイナー、ビジュアルアーティストに向けた' +
     'オープンソースのサウンドライブラリです。',
 
   ttsPhrases: [
-    'ISAMOは、モーショングラフィックスの分野から直接派生した動きとアーキタイプに' +
+    '(ISAMO !)は、モーショングラフィックスの分野から直接派生した動きとアーキタイプに' +
       '基づいて分類されたサウンドバンクを探索することをユーザーに提案します。' +
       '各サウンドは、その特性を最大限に表現するために緻密に制作されています。',
     'FUCK BENJAMIN NETHANYAHU !!!!!!!',
     'ごめん。仕方なかった。',
-    'ISAMOでは、アプリ内で直接サウンドを再生、編集、ダウンロードできます。' +
+    '(ISAMO !)では、アプリ内で直接サウンドを再生、編集、ダウンロードできます。' +
       'ライブラリセクションには著作権の制限はありません。',
     'サウンドプレーヤーセクションでは、自分の動画をアップロードして、作品に' +
       '適用したサウンドのプレビューを確認できます。',
-    'ISAMOはまだ開発中です。準備が整い次第、無料で公開されます。',
+    '(ISAMO !)はまだ開発中です。準備が整い次第、無料で公開されます。',
     'そう願う（笑）',
     'もう十分だ',
     '頼むから',
     '音量を上げろ、意気地なし',
     'NOG7 2026年6月14日！',
-    'このバージョンのISAMOではもう話すことがありません。アプリを楽しんでください！',
+    'このバージョンの(ISAMO !)ではもう話すことがありません。アプリを楽しんでください！',
   ],
 
   uploadText:      'クリップをアップロード\n選んだ音に再生が同期されます。',
-  boardUploadText: 'クリップをアップロード\nISAMOが認識してボード用に分類します。',
+  boardUploadText: 'クリップをアップロード\n(ISAMO !)が認識してボード用に分類します。',
 
   soundPlayerHintSuffix:     'を押してサウンドプレーヤーを開く。',
   soundPlayerHintSuffixCtrl: ' を押してサウンドプレーヤーを開く。',
@@ -395,17 +395,17 @@ const JP: LangStrings = {
   accountWip: 'アカウントセクションはまだ開発中です！',
 
   onlineInfoText:
-    'ISAMOは最終版において、コミュニティセクションにBoardを搭載する予定です。Boardは、' +
+    '(ISAMO !)は最終版において、コミュニティセクションにBoardを搭載する予定です。Boardは、' +
     'アプリ内で利用可能なサウンドを使用したユーザーによるアップロード動画と、事前に選定された' +
     'アーティストやデザイナーの動画を組み合わせたムードボードです。',
 
   artistBios: {
-    '...': 'ISAMOは最終版において、さまざまなアーティストによるサウンドパックを提供する予定です。このセクションは、Artistsセクションが提供する内容の一例です。',
+    '...': '(ISAMO !)は最終版において、さまざまなアーティストによるサウンドパックを提供する予定です。このセクションは、Artistsセクションが提供する内容の一例です。',
     Egemonia:  'サウンドデザイナー兼ビジュアルアーティスト。音と動く映像の関係を探求し、絶えず変化するグラフィック空間に宿るために作られた音のテクスチャを生み出す。',
     'Kay Yoko': '作曲家でありサウンドの研究者。彼女のパックはミニマリズムと密度の間を行き来し、緩やかな映像も激しい映像も同じ一貫性で支える素材を提供する。',
     Maclow:    'プロデューサー兼サウンドアーティスト。フィールド録音を抽象的な要素になるまで加工し、動くグラフィックに適用するために構想された音を生み出す。',
     Rusowsky:  'ミュージシャン兼プロデューサー。彼の音響探求はジャンルと形式を横断し、認識できる中心を保ちながら多様なグラフィック文脈に適応するパックを生み出す。',
-    Sampha:    'アーティスト兼作曲家。ISAMOのために選ばれた音は、本質的な要素を通して内面的な風景を構築する彼の能力を反映し、動く映像に寄り添う。',
+    Sampha:    'アーティスト兼作曲家。(ISAMO !)のために選ばれた音は、本質的な要素を通して内面的な風景を構築する彼の能力を反映し、動く映像に寄り添う。',
   },
 
   fxExplanations: {
@@ -418,10 +418,10 @@ const JP: LangStrings = {
   },
 
   navExplanations: {
-    Library:   'モーションデザインの動きとアーキタイプで分類された、ISAMOのサウンドライブラリ。',
-    Community: 'ISAMOのコミュニティ空間：Boardとユーザーによる投稿。',
+    Library:   'モーションデザインの動きとアーキタイプで分類された、(ISAMO !)のサウンドライブラリ。',
+    Community: '(ISAMO !)のコミュニティ空間：Boardとユーザーによる投稿。',
     Artists:   '招かれたアーティストやデザイナーが手がけたサウンドパック。',
-    Settings:  'ISAMOの設定：オーディオ、ディスプレイ、言語、アカウント。',
+    Settings:  '(ISAMO !)の設定：オーディオ、ディスプレイ、言語、アカウント。',
     // Library X
     Movement: '空間を動く要素にまつわる音。',
     Camera:   'カメラの動きやカットにまつわる音。',
@@ -438,7 +438,7 @@ const JP: LangStrings = {
     Ambient:  'アンビエントな空気感や音のベッド。',
     Voices:   '背景の声やボーカルのテクスチャ。',
     // Community X
-    Board:  'ISAMOの音を使ってコミュニティが投稿した動画のムードボード。',
+    Board:  '(ISAMO !)の音を使ってコミュニティが投稿した動画のムードボード。',
     Upload: '自分の動画をアップロードしてBoardに追加します。',
     // Settings X
     Audio:    'オーディオと合成音声（TTS）の設定。',
