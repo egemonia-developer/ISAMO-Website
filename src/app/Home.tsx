@@ -6,7 +6,7 @@ const LANG_DISPLAY: Record<Lang, string> = { en: 'ENGLISH', it: 'ITALIANO', fr: 
 import { useGamepadNav } from './hooks/useGamepadNav';
 import { cursorState } from './hooks/cursorState';
 import { playUi, setUiMuted, setUiVolume } from './audio/uiSounds';
-import { playKeyboardSound, preloadKeyboardSounds } from './audio/keyboardSounds';
+import { playKeyboardSound, playBackspaceSound, preloadKeyboardSounds } from './audio/keyboardSounds';
 import { speak, prefetch, cancelTts, getTtsLevel, isTtsPlaying, setTtsEnabled, setTtsParams, DEFAULT_TTS_PARAMS, TTS_LANGS, INTONATIONS, type TtsParams } from './audio/tts';
 import { useTypewriter } from './hooks/useTypewriter';
 import type { InputMode } from './App';
@@ -1799,7 +1799,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                         'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
                         'Enter'].includes(e.key)
         || (e.key === ' ' && isLibraryPanel && focusedW !== null); // space = play/pause in sound player
-      if (!isSearchFocused && !isSilent) playKeyboardSound();
+      if (!isSearchFocused && !isSilent) {
+        if (e.key === 'Backspace') playBackspaceSound(); else playKeyboardSound();
+      }
 
       // While the search bar is focused: let the browser handle all typing
       // normally and block most XMB shortcuts. Exceptions:
@@ -3478,7 +3480,13 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     let blocked = false;          // true while momentum from the last snap is draining
     let settleTimer = 0;          // setTimeout id — reset on every wheel event
     const MB = boardVideos.length;
-    const GESTURE_SETTLE_MS = 150;
+    const GESTURE_SETTLE_MS = 220;
+    // Trackpad inertia tapers off in a long tail of tiny deltas. If that tail
+    // outlasts GESTURE_SETTLE_MS, "blocked" clears mid-tail and the leftover
+    // momentum starts re-accumulating from zero — firing an extra, unintended
+    // snap for what felt like a single gesture. Ignore the first event of a
+    // fresh accumulation if it's too small to be a deliberate new gesture.
+    const MOMENTUM_NOISE = 4;
 
     function resetSettle() {
       if (settleTimer) clearTimeout(settleTimer);
@@ -3507,6 +3515,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
         e.preventDefault();
         resetSettle();
         if (blocked) return;
+        if (accY === 0 && absY < MOMENTUM_NOISE) return;
         accY += e.deltaY;
         if (Math.abs(accY) < WHEEL_THRESHOLD) return;
         const dir = accY > 0 ? 1 : -1;
@@ -3533,6 +3542,10 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
 
       // While blocked (momentum draining after last snap): ignore input
       if (blocked) return;
+
+      // Tail end of inertia after the settle window already reopened — too
+      // small to be a deliberate new gesture, don't start accumulating from it.
+      if (accX === 0 && accY === 0 && Math.max(absX, absY) < MOMENTUM_NOISE) return;
 
       // ── Horizontal scroll → advance / retreat navigation level ──────────────
       if (absX > absY) {
@@ -4060,7 +4073,8 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
               onFocus={() => setPlayerSearchFocused(true)}
               onBlur={() => setPlayerSearchFocused(false)}
               onKeyDown={e => {
-                if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete')
+                if (e.key === 'Backspace') playBackspaceSound();
+                else if (e.key.length === 1 || e.key === 'Delete')
                   playKeyboardSound();
               }}
               placeholder="..."
@@ -4101,7 +4115,8 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
               onFocus={() => setArtistSearchFocused(true)}
               onBlur={() => setArtistSearchFocused(false)}
               onKeyDown={e => {
-                if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete')
+                if (e.key === 'Backspace') playBackspaceSound();
+                else if (e.key.length === 1 || e.key === 'Delete')
                   playKeyboardSound();
               }}
               placeholder="..."
@@ -4994,7 +5009,8 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
                 onKeyDown={e => {
-                  if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete')
+                  if (e.key === 'Backspace') playBackspaceSound();
+                  else if (e.key.length === 1 || e.key === 'Delete')
                     playKeyboardSound();
                 }}
                 placeholder="..."
@@ -5573,6 +5589,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                               // Scroll over any value to adjust it directly (up = +, down = −).
                               e.preventDefault();
                               focusHere();
+                              playUi('fxScroll');
                               adjustFxValue(group, param, e.deltaY < 0 ? 1 : -1);
                             }}
                             onPointerDown={e => {

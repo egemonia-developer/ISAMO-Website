@@ -57,7 +57,10 @@ export async function loadBuffer(url: string): Promise<AudioBuffer> {
 }
 
 // ── Playback ──────────────────────────────────────────────────────────────────
-export function playBuffer(buffer: AudioBuffer, volume: number): void {
+// Returns the source node so callers can "choke" (stop) a still-playing instance
+// before retriggering the same sound — needed for sounds that fire faster than
+// their own length (e.g. continuous scroll feedback) to avoid piling up.
+export function playBuffer(buffer: AudioBuffer, volume: number): AudioBufferSourceNode {
   const ctx  = getCtx();
   const src  = ctx.createBufferSource();
   src.buffer = buffer;
@@ -68,4 +71,5 @@ export function playBuffer(buffer: AudioBuffer, volume: number): void {
   src.connect(gain);
   gain.connect(getInsertPoint()); // → masterGain → limiter → destination
   src.start(0);
+  return src;
 }

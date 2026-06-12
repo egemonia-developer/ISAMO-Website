@@ -13,7 +13,8 @@ export type UiSoundName =
   | 'clickCursor'    // ← click landed on an interactive element
   | 'conferma'       | 'undo'
   | 'mute'           | 'unmute'
-  | 'enterText';
+  | 'enterText'
+  | 'fxScroll';      // ← scrolling over an FX value in the sound player
 
 const SRC: Record<UiSoundName, string> = {
   horizontalLeft:  '/sounds/horizontal-left.mp3',
@@ -29,21 +30,24 @@ const SRC: Record<UiSoundName, string> = {
   mute:            '/sounds/mute.mp3',
   unmute:          '/sounds/unmute.mp3',
   enterText:       '/sounds/enter-text.mp3',
+  fxScroll:        '/sounds/scroll-fx.mp3',
 };
 
 // Per-sound volumes (0.0–1.0). Hover is subtle since it fires often.
 const VOLUMES: Record<UiSoundName, number> = {
-  horizontalLeft:  0.40, horizontalRight: 0.40, horizontal:   0.40,
-  verticalUp:      0.40, verticalDown:    0.40,
-  hover:           0.20,
-  click:           0.30, clickCursor:     0.40,
-  conferma:        0.55, undo:            0.50,
-  mute:            0.55, unmute:          0.55,
-  enterText:       0.55,
+  horizontalLeft:  0.65, horizontalRight: 0.65, horizontal:   0.65,
+  verticalUp:      0.65, verticalDown:    0.65,
+  hover:           0.30,
+  click:           0.45, clickCursor:     0.60,
+  conferma:        0.80, undo:            0.75,
+  mute:            0.80, unmute:          0.80,
+  enterText:       0.80,
+  fxScroll:        0.60,
 };
 
 // Per-sound min interval (ms) — prevents machine-gunning when keys are held.
 // Hover gets a longer throttle since cursor sweeps trigger many enters.
+// fxScroll gets the same treatment — wheel events fire continuously.
 const THROTTLE_MS: Record<UiSoundName, number> = {
   horizontalLeft:  60, horizontalRight: 60, horizontal:   60,
   verticalUp:      60, verticalDown:    60,
@@ -52,11 +56,18 @@ const THROTTLE_MS: Record<UiSoundName, number> = {
   conferma:        80, undo:            80,
   mute:            80, unmute:          80,
   enterText:       80,
+  fxScroll:        80,
 };
 
 const buffers  = new Map<UiSoundName, AudioBuffer>();
 const lastPlay = new Map<UiSoundName, number>();
 let   muted    = false;
+
+// Sounds that fire faster than their own length (continuous scroll feedback)
+// "choke": a retrigger stops the still-playing instance first, so they never
+// pile up into an overlapping wash.
+const CHOKE_GROUP = new Set<UiSoundName>(['fxScroll']);
+const activeSources = new Map<UiSoundName, AudioBufferSourceNode>();
 
 let loadPromise: Promise<void> | null = null;
 
@@ -94,6 +105,15 @@ export function playUi(name: UiSoundName) {
 
   const buf = buffers.get(name);
   if (!buf) return; // still decoding — skip rather than stutter
+
+  if (CHOKE_GROUP.has(name)) {
+    try { activeSources.get(name)?.stop(); } catch { /* already stopped */ }
+    const src = playBuffer(buf, VOLUMES[name]);
+    activeSources.set(name, src);
+    src.onended = () => { if (activeSources.get(name) === src) activeSources.delete(name); };
+    return;
+  }
+
   playBuffer(buf, VOLUMES[name]);
 }
 
