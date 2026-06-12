@@ -349,6 +349,13 @@ const CATEGORIES: Category[] = [
   },
 ];
 
+// Every sound id in the Library category — used to resolve `/sounds/{id}.mp3`.
+// Preloaded in full by the loading screen for instant playback.
+export const LIBRARY_SOUND_IDS: string[] = CATEGORIES[0].xItems
+  .flatMap(x => x.zItems ?? [])
+  .flatMap(z => z.wItems ?? [])
+  .map(w => w.id);
+
 // ── Sound-path lookup ─────────────────────────────────────────────────────────
 // Resolves a pill tag (e.g. 'B.A.01') → { y, x, z, w } navigation indices.
 // Tries the tag as-is, then strips a leading dot before trailing digits
@@ -675,11 +682,10 @@ function TagLabel({ label, onClick }: {
 }
 
 // ── Moodboard video item — plays only when active; muted prop toggleable ─────
-// With all 24 board items mounted at once, loading every <video src> up front
-// means 24 simultaneous metadata fetches (242MB of source files). Instead, each
-// item only gets its `src` once it scrolls near the viewport (or is selected) —
-// unless the connection is slow, in which case VideoTile loads every item's
-// compressed /refs-lq/ variant up front and falls back to an accent square on error.
+// All 24 items load their <video src> immediately; the loading screen prefetches
+// every source up front so this is served from cache. On a slow connection,
+// VideoTile loads the compressed /refs-lq/ variant instead and falls back to an
+// accent square on error.
 function MoodboardVideoItem({ src, isActive, isMuted, fullView = false }: { src: string; isActive: boolean; isMuted: boolean; fullView?: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
 
@@ -699,7 +705,6 @@ function MoodboardVideoItem({ src, isActive, isMuted, fullView = false }: { src:
   return (
     <VideoTile
       src={src}
-      lazy={!isActive}
       videoRef={ref}
       style={{ width: '100%', display: 'block',
                aspectRatio: fullView ? '16 / 9' : '1 / 1',
@@ -2712,6 +2717,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
 
     // ── Load new sound ────────────────────────────────────────────────────────
     audio.src          = soundSrc(currentSoundId);
+    audio.preload      = 'auto'; // fully buffer for instant playback (the loading screen also prefetches every library sound)
     audio.loop         = false;
     audio.playbackRate = 1;
     audio.preservesPitch = false;   // tape mode: W/A shift pitch + speed together

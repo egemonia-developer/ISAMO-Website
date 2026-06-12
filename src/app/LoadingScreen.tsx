@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { playKeyboardSound, preloadKeyboardSounds } from './audio/keyboardSounds';
 import { preloadUiSounds } from './audio/uiSounds';
+import { INITIAL_BOARD_VIDEOS, LIBRARY_SOUND_IDS } from './Home';
+import { toLowQuality } from './VideoTile';
+import { useLowConnection } from './hooks/useLowConnection';
 
 interface Props {
   onComplete: () => void;
@@ -13,18 +16,28 @@ const BANG_HOLD_MS   = 1150; // how long "(!)" stays on screen before "(ISAMO !)
 const LOADED_HOLD_MS = 1300; // how long "(ISAMO !)" stays before completing
 const CLOSE_MS       =  160; // brackets snap shut before the "!" pops in and reopens them
 
+// Fetches every URL into the browser's HTTP cache (fire-and-forget per file —
+// failures are ignored). Used to warm the cache for board/gallery videos and
+// the sound library so playback is instant once the user navigates to them.
+function warmCache(urls: string[]): void {
+  urls.forEach(url => { fetch(url).then(r => r.blob()).catch(() => {}); });
+}
+
 // ── Asset preloading — the dot animation loops (repeat: Infinity) until both
 // LOAD_MIN_MS has elapsed AND every asset below is ready (or MAX_WAIT_MS hits).
-// Board/gallery videos are NOT included: each <video preload="metadata"> already
-// fetches its own header on mount, and with 24 of them (242MB total) preloading
-// them all here too just doubles those requests and stalls the loading screen
-// on slow connections. ──
-function preloadAssets(): Promise<void> {
+// Board/gallery videos and the sound library are warmed in the background (not
+// awaited) — on a normal connection that's 242MB of video, far more than
+// MAX_WAIT_MS would allow, but the fetches keep running after the loading
+// screen closes so playback is instant by the time the user gets there. ──
+function preloadAssets(lowConnection: boolean): Promise<void> {
   const tasks: Promise<unknown>[] = [
     preloadKeyboardSounds(),
     preloadUiSounds(),
   ];
   if (typeof document !== 'undefined' && document.fonts?.ready) tasks.push(document.fonts.ready);
+
+  warmCache(INITIAL_BOARD_VIDEOS.map(v => lowConnection ? toLowQuality(v.src) : v.src));
+  warmCache(LIBRARY_SOUND_IDS.map(id => `/sounds/${id}.mp3`));
 
   const timeout = new Promise<void>(resolve => setTimeout(resolve, MAX_WAIT_MS));
   return Promise.race([Promise.all(tasks).then(() => {}), timeout]);
@@ -69,6 +82,7 @@ type Phase = 'loading' | 'closed' | 'bang' | 'full';
 export function LoadingScreen({ onComplete }: Props) {
   const [phase,    setPhase]    = useState<Phase>('loading');
   const [showEcho, setShowEcho] = useState(false);
+  const lowConnection = useLowConnection();
 
   const onCompleteRef = useRef(onComplete);
   useEffect(() => { onCompleteRef.current = onComplete; });
@@ -97,7 +111,7 @@ export function LoadingScreen({ onComplete }: Props) {
       timers.push(setTimeout(resolve, LOAD_MIN_MS));
     });
 
-    Promise.all([minDelay, preloadAssets()]).then(() => {
+    Promise.all([minDelay, preloadAssets(lowConnection)]).then(() => {
       if (cancelled) return;
       clearInterval(dotSoundLoop);
 
