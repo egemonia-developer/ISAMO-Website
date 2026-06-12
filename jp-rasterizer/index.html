@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JP Rasterizer</title>
+<script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #111111;
+    --muted: #888;
+    --line: #d8d8d8;
+    --field: #f2f2f2;
+    --accent: #2f7bf6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+  h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    margin: 0 0 4px;
+  }
+  .sub { color: var(--muted); font-size: 13px; margin: 0 0 36px; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .row > label { font-size: 15px; }
+
+  .field {
+    background: var(--field);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 9px 14px;
+    font-size: 15px;
+    width: 100%;
+    color: var(--fg);
+  }
+  .field:focus { outline: none; border-color: var(--accent); }
+
+  /* file button */
+  .filebtn {
+    background: var(--field);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 9px 14px;
+    font-size: 15px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--fg);
+    transition: background .15s;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .filebtn:hover { background: #ebebeb; }
+  input[type=file] { display: none; }
+
+  /* slider */
+  .sliderwrap { display: flex; align-items: center; gap: 14px; }
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 6px;
+    background: linear-gradient(var(--accent), var(--accent)) no-repeat,
+                var(--line);
+    background-size: var(--fill, 30%) 100%;
+    width: 100%;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  .resval {
+    font-variant-numeric: tabular-nums;
+    font-size: 14px; color: var(--muted);
+    min-width: 56px; text-align: right;
+  }
+
+  /* download button */
+  .dlbtn {
+    grid-column: 2;
+    background: var(--field);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 11px 14px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .dlbtn:hover:not(:disabled) { background: #ebebeb; }
+  .dlbtn:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* preview canvas */
+  .preview-row { grid-template-columns: 110px 1fr; align-items: start; }
+  .canvas-box {
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: #fff;
+    overflow: auto;
+    padding: 18px;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+  }
+  canvas { image-rendering: pixelated; display: block; }
+
+  .hint { font-size: 12px; color: var(--muted); margin-top: 8px; grid-column: 2; }
+  .status { font-size: 12px; color: var(--muted); grid-column: 2; min-height: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>JP Rasterizer</h1>
+  <p class="sub">日本語グリフ用ラスタライザー — upload a font, rasterize, download the full set.</p>
+
+  <div class="row">
+    <label>Font</label>
+    <label class="filebtn" id="fileLabel" for="fontInput">フォントを選択 / Choose font…</label>
+    <input type="file" id="fontInput" accept=".otf,.ttf,.woff,.ttc" />
+  </div>
+
+  <div class="row">
+    <label>Resolution</label>
+    <div class="sliderwrap">
+      <input type="range" id="res" min="6" max="60" value="18" />
+      <span class="resval" id="resVal">18 px</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <label>Width</label>
+    <div class="sliderwrap">
+      <input type="range" id="stretch" min="25" max="300" value="100" />
+      <span class="resval" id="stretchVal">100%</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <label>Preview</label>
+    <input type="text" class="field" id="text" value="ラスター" placeholder="ここに入力…" />
+  </div>
+
+  <div class="row preview-row">
+    <label>&nbsp;</label>
+    <div class="canvas-box">
+      <canvas id="canvas"></canvas>
+    </div>
+  </div>
+
+  <div class="row">
+    <label>&nbsp;</label>
+    <button class="dlbtn" id="download" disabled>Download (Full Set)</button>
+  </div>
+
+  <div class="row">
+    <label>&nbsp;</label>
+    <div class="status" id="status">Load a font to begin.</div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const fontInput = $('fontInput');
+  const fileLabel = $('fileLabel');
+  const resInput     = $('res');
+  const resVal       = $('resVal');
+  const stretchInput = $('stretch');
+  const stretchVal   = $('stretchVal');
+  const textInput    = $('text');
+  const canvas       = $('canvas');
+  const ctx          = canvas.getContext('2d');
+  const dlBtn        = $('download');
+  const statusEl     = $('status');
+
+  let font = null;              // parsed opentype font
+  let fontArrayBuffer = null;   // raw bytes of the uploaded font (for cmap transplant)
+  let fontFileName = 'font';
+
+  const CELL_DISPLAY = 8;    // on-screen px per rasterized cell
+  const PAD_CELLS    = 1;    // padding around glyphs (in cells)
+
+  // horizontal stretch factor (1 = normal, <1 condensed, >1 expanded)
+  function currentStretch() { return (+stretchInput.value) / 100; }
+
+  function setStatus(msg) { statusEl.textContent = msg; }
+
+  // map slider fill for the gradient
+  function setFill(input, pct) { input.style.setProperty('--fill', pct + '%'); }
+  function updateSliderFill() {
+    const rp = ((+resInput.value - +resInput.min) / (+resInput.max - +resInput.min)) * 100;
+    setFill(resInput, rp);
+    resVal.textContent = resInput.value + ' px';
+    const sp = ((+stretchInput.value - +stretchInput.min) / (+stretchInput.max - +stretchInput.min)) * 100;
+    setFill(stretchInput, sp);
+    stretchVal.textContent = stretchInput.value + '%';
+  }
+
+  // =========================================================================
+  // FAITHFUL PORT of no-design-foundry/filters-rasterizer (rasterizer.py)
+  //
+  // Pipeline, mirroring the Python algorithm step for step:
+  //   1. mono bitmap of the glyph            (FT_LOAD_TARGET_MONO -> canvas)
+  //   2. double_bitmap: each pixel -> 2x2    (bits() + row duplication)
+  //   3. label() black regions (4-conn) and white holes (8-conn, drop border)
+  //   4. border_walker() traces each region's perimeter
+  //   5. Shape.clean() drops colinear points, keeping only corners
+  //   6. get_offsets() miters every vertex by ±pixel_size/4
+  //   7. emit black contours forward, white (counter-)contours reversed
+  // =========================================================================
+  const off = document.createElement('canvas');
+  const offCtx = off.getContext('2d', { willReadFrequently: true });
+
+  // ---- step 1: mono bitmap ----------------------------------------------
+  // Returns { grid (Uint8 rows*cols), cols, rows, baseline (cells from top),
+  //           advCells }. res = cells per em.
+  function rasterizeGlyph(glyph, res) {
+    const upm = font.unitsPerEm;
+    const scale = res / upm;
+    const stretch = currentStretch();             // horizontal condense/expand
+    const advance = glyph.advanceWidth || upm;
+    // Stretch widens/narrows the glyph horizontally while pixels stay square:
+    // the glyph simply covers `stretch`x more (or fewer) columns at the same
+    // cell size, so the advance and contour x-positions scale automatically.
+    const advCells = Math.max(1, Math.round(advance * scale * stretch));
+
+    const cols = advCells + PAD_CELLS * 2;
+    const rows = Math.round((font.ascender - font.descender) * scale) + PAD_CELLS * 2;
+    const baseline = font.ascender * scale + PAD_CELLS;
+    if (cols <= 0 || rows <= 0)
+      return { grid: new Uint8Array(0), cols: 0, rows: 0, advCells, baseline };
+
+    off.width = cols; off.height = rows;
+    offCtx.clearRect(0, 0, cols, rows);
+    offCtx.fillStyle = '#000';
+    // draw the glyph with x scaled by `stretch` about the left padding column
+    const path = glyph.getPath(0, baseline, res);
+    for (const cmd of path.commands) {
+      if (cmd.x  !== undefined) cmd.x  = cmd.x  * stretch + PAD_CELLS;
+      if (cmd.x1 !== undefined) cmd.x1 = cmd.x1 * stretch + PAD_CELLS;
+      if (cmd.x2 !== undefined) cmd.x2 = cmd.x2 * stretch + PAD_CELLS;
+    }
+    path.fill = '#000';
+    path.draw(offCtx);
+
+    const img = offCtx.getImageData(0, 0, cols, rows).data;
+    const grid = new Uint8Array(cols * rows);
+    for (let i = 0, p = 3; i < grid.length; i++, p += 4) {
+      if (img[p] > 110) grid[i] = 1;   // alpha threshold ~ mono render
+    }
+    return { grid, cols, rows, advCells, baseline };
+  }
+
+  // ---- step 2: double_bitmap (each pixel -> 2x2) ------------------------
+  function doubleBitmap(grid, cols, rows) {
+    const W = cols * 2, H = rows * 2;
+    const dbl = new Uint8Array(W * H);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (!grid[r * cols + c]) continue;
+        const R = r * 2, C = c * 2;
+        dbl[R * W + C] = 1; dbl[R * W + C + 1] = 1;
+        dbl[(R + 1) * W + C] = 1; dbl[(R + 1) * W + C + 1] = 1;
+      }
+    }
+    return { dbl, W, H };
+  }
+
+  // ---- step 3: connected components (scipy.ndimage.label) ---------------
+  function labelRegions(grid, W, H, conn8) {
+    const labels = new Int32Array(W * H);
+    const regions = [];
+    const neigh = conn8
+      ? [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]
+      : [[-1,0],[1,0],[0,-1],[0,1]];
+    let cur = 0;
+    for (let r = 0; r < H; r++) {
+      for (let c = 0; c < W; c++) {
+        const idx = r * W + c;
+        if (!grid[idx] || labels[idx]) continue;
+        cur++;
+        const stack = [[r, c]];
+        labels[idx] = cur;
+        const cells = [];
+        while (stack.length) {
+          const [cr, cc] = stack.pop();
+          cells.push([cr, cc]);
+          for (const [dr, dc] of neigh) {
+            const nr = cr + dr, nc = cc + dc;
+            if (nr < 0 || nc < 0 || nr >= H || nc >= W) continue;
+            const ni = nr * W + nc;
+            if (grid[ni] && !labels[ni]) { labels[ni] = cur; stack.push([nr, nc]); }
+          }
+        }
+        regions.push(cells);
+      }
+    }
+    return regions;
+  }
+
+  function touchesBorder(cells, W, H) {
+    for (const [r, c] of cells)
+      if (r === 0 || c === 0 || r === H - 1 || c === W - 1) return true;
+    return false;
+  }
+
+  // start = bottom-most cell in the left-most column (matches _get_shapes)
+  function regionStart(cells) {
+    let colMin = Infinity;
+    for (const [, c] of cells) if (c < colMin) colMin = c;
+    let rowMax = -1;
+    for (const [r, c] of cells) if (c === colMin && r > rowMax) rowMax = r;
+    return [rowMax, colMin];
+  }
+
+  // ---- step 4: border_walker -------------------------------------------
+  function borderWalk(grid, W, H, start, match) {
+    let curL = start[0], curC = start[1];
+    let dirs = [[1,0],[0,1],[-1,0],[0,-1]];
+    const visited = new Set([curL + ',' + curC]);
+    const shape = [[curL, curC]];
+    const maxIter = W * H * 8;
+    let walking = true, guard = 0;
+    while (walking && guard++ < maxIter) {
+      let advanced = false;
+      for (let i = 0; i < dirs.length; i++) {
+        const L = curL + dirs[i][0], C = curC + dirs[i][1];
+        if (L === start[0] && C === start[1]) { walking = false; advanced = true; break; }
+        if (L < 0 || C < 0 || L > H - 1 || C > W - 1) continue;
+        const key = L + ',' + C;
+        if (grid[L * W + C] === match && !visited.has(key)) {
+          visited.add(key);
+          shape.push([L, C]);
+          // directions[i-1:] + directions[:i-1]  (rotate so we hug the wall)
+          dirs = dirs.slice(i - 1).concat(dirs.slice(0, i - 1));
+          curL = L; curC = C; advanced = true; break;
+        }
+      }
+      if (!advanced) break;
+    }
+    return shape;
+  }
+
+  // ---- step 5: Shape.clean (keep only corners) --------------------------
+  function cleanColinear(coords) {
+    if (coords.length < 2) return coords;
+    let last = coords[0];
+    const out = [];
+    let index = 1;                       // 0 -> compare row, 1 -> compare col
+    const seq = coords.slice(1).concat([coords[0]]);
+    for (const coos of seq) {
+      if (coos[index] !== last[index]) out.push(last);
+      if (coos[0] === last[0]) index = 0;
+      if (coos[1] === last[1]) index = 1;
+      last = coos;
+    }
+    return out;
+  }
+
+  // ---- step 6: get_offsets (miter every vertex) -------------------------
+  function getOffsets(coordinates, offset) {
+    const n = coordinates.length;
+    const out = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const [x, y] = coordinates[i];
+      const prev = coordinates[(i - 1 + n) % n];
+      const next = coordinates[(i + 1) % n];
+      const d1x = x - prev[0], d1y = y - prev[1];
+      const L1 = Math.hypot(d1x, d1y);
+      const d2x = next[0] - x, d2y = next[1] - y;
+      let dx = L1 ? offset * d1y / L1 : 0;
+      let dy = L1 ? -offset * d1x / L1 : 0;
+      const angleDiff = Math.atan2(d2y, d2x) - Math.atan2(d1y, d1x);
+      const t = offset * Math.tan(angleDiff / 2);
+      if (L1) { dx += t * d1x / L1; dy += t * d1y / L1; }
+      out[i] = [x + dx + Math.abs(offset), y + dy + Math.abs(offset)];
+    }
+    return out;
+  }
+
+  // ---- steps 2-7 combined: contours of one glyph in font units ----------
+  // Returns { contours: [[ [x,y], ... ], ...], advance }.
+  function computeGlyphContours(glyph, res) {
+    const upm = font.unitsPerEm;
+    const cell = upm / res;                 // pixel_size in font units
+    const rg = rasterizeGlyph(glyph, res);
+    const out = { contours: [], advance: Math.round(rg.advCells * cell) };
+    if (!rg.cols) return out;
+
+    const { dbl, W, H } = doubleBitmap(rg.grid, rg.cols, rg.rows);
+
+    // map a doubled-grid vertex (Y,X) -> font units, then miter the polygon
+    const mapContour = (coords, offset, reverse) => {
+      let pts = coords.map(([Y, X]) => [
+        (X / 2 - PAD_CELLS) * cell,
+        (rg.baseline - Y / 2) * cell - cell / 2
+      ]);
+      if (reverse) pts.reverse();
+      return getOffsets(pts, offset);
+    };
+
+    // black shapes: ones, 4-connectivity, walk match=1, offset = +pixel/4
+    for (const cells of labelRegions(dbl, W, H, false)) {
+      const coords = cleanColinear(borderWalk(dbl, W, H, regionStart(cells), 1));
+      if (coords.length >= 3) out.contours.push(mapContour(coords, cell / 4, false));
+    }
+
+    // white shapes (counters): zeros, 8-connectivity, drop the outer field,
+    // walk match=0, reversed winding, offset = -pixel/4 -> punches holes
+    const inv = new Uint8Array(W * H);
+    for (let i = 0; i < inv.length; i++) inv[i] = 1 - dbl[i];
+    for (const cells of labelRegions(inv, W, H, true)) {
+      if (touchesBorder(cells, W, H)) continue;
+      const coords = cleanColinear(borderWalk(dbl, W, H, regionStart(cells), 0));
+      if (coords.length >= 3) out.contours.push(mapContour(coords, -cell / 4, true));
+    }
+    return out;
+  }
+
+  // -------------------------------------------------------------------------
+  // Live preview: render the real contours (with holes) via Path2D/nonzero,
+  // so what you see is exactly what the downloaded font contains.
+  // -------------------------------------------------------------------------
+  let contourCache = new Map();   // key: res|stretch|char -> {contours, advance}
+  function glyphContours(ch, res) {
+    const key = res + '|' + stretchInput.value + '|' + ch;
+    let v = contourCache.get(key);
+    if (!v) { v = computeGlyphContours(font.charToGlyph(ch), res); contourCache.set(key, v); }
+    return v;
+  }
+
+  function renderPreview() {
+    if (!font) return;
+    const res = +resInput.value;
+    const upm = font.unitsPerEm;
+    const sc = CELL_DISPLAY * res / upm;          // font units -> display px
+    const chars = Array.from(textInput.value || '');
+
+    const data = chars.map(ch => glyphContours(ch, res));
+    let advTotal = data.reduce((a, g) => a + g.advance, 0) || upm;
+
+    const pad = CELL_DISPLAY * 2;
+    const W = Math.ceil(advTotal * sc) + pad * 2;
+    const H = Math.ceil((font.ascender - font.descender) * sc) + pad * 2;
+    canvas.width = W; canvas.height = H;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#111';
+
+    const baseY = font.ascender * sc + pad;
+    let penX = pad;
+    for (const gd of data) {
+      const p = new Path2D();
+      for (const contour of gd.contours) {
+        contour.forEach(([x, y], i) => {
+          const px = penX + x * sc, py = baseY - y * sc;
+          if (i === 0) p.moveTo(px, py); else p.lineTo(px, py);
+        });
+        p.closePath();
+      }
+      ctx.fill(p, 'nonzero');
+      penX += gd.advance * sc;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Build a rasterized OTF from the ENTIRE font (every glyph), using the same
+  // faithful contours (black forward, white reversed). Async + yields so the
+  // UI stays responsive while large CJK fonts (thousands of glyphs) process.
+  // -------------------------------------------------------------------------
+  async function buildRasterFontFull(onProgress) {
+    const res = +resInput.value;
+    const upm = font.unitsPerEm;
+    const total = font.glyphs.length;
+    const glyphs = [];
+
+    // Reverse the SOURCE font's cmap (Unicode -> gid) into gid -> [unicodes].
+    // This is the only reliable source of the character mapping: for CID-keyed
+    // CFF fonts (e.g. A-OTF / Morisawa) opentype.js leaves per-glyph .unicode
+    // undefined, so rebuilding cmap from glyph.unicode would yield an empty
+    // cmap with gidN names — exactly the broken export. The cmap table itself
+    // is always present (the preview's charToGlyph relies on it).
+    const idxMap = (font.tables.cmap && font.tables.cmap.glyphIndexMap) || {};
+    const gidToUnicodes = new Map();
+    for (const cp in idxMap) {
+      const gid = idxMap[cp];
+      const arr = gidToUnicodes.get(gid);
+      if (arr) arr.push(+cp); else gidToUnicodes.set(gid, [+cp]);
+    }
+    if (Object.keys(idxMap).length === 0) {
+      console.warn('Source font has no Unicode cmap; output will not be web-mappable.');
+    }
+
+    for (let i = 0; i < total; i++) {
+      const src = font.glyphs.get(i);
+      let path = new opentype.Path();
+      let advance;
+      try {
+        const gd = computeGlyphContours(src, res);   // empty contours for blanks
+        for (const contour of gd.contours) {
+          contour.forEach(([x, y], j) => {
+            if (j === 0) path.moveTo(x, y); else path.lineTo(x, y);
+          });
+          path.close();
+        }
+        advance = gd.advance;
+      } catch (e) {
+        path = new opentype.Path();
+        advance = Math.round(src.advanceWidth || upm * 0.5);
+      }
+
+      // Prefer the reconstructed cmap; fall back to whatever opentype gave us.
+      let ucs = gidToUnicodes.get(i);
+      if (!ucs || !ucs.length) {
+        ucs = (src.unicode != null) ? [src.unicode]
+            : (src.unicodes && src.unicodes.length ? src.unicodes.slice() : []);
+      }
+
+      // Name glyphs meaningfully: .notdef, uniXXXX when mapped, gidN otherwise.
+      let name = src.name;
+      if (i === 0) {
+        name = '.notdef';
+      } else if (!name || /^(gid|cid|glyph)\d+$/i.test(name)) {
+        name = ucs.length
+          ? 'uni' + ucs[0].toString(16).toUpperCase().padStart(4, '0')
+          : 'gid' + i;
+      }
+
+      glyphs.push(new opentype.Glyph({
+        index: i,
+        name,
+        unicode: ucs[0],
+        unicodes: ucs,
+        advanceWidth: advance,
+        path
+      }));
+
+      if (i % 100 === 0) {
+        if (onProgress) onProgress(i, total);
+        await new Promise(r => setTimeout(r, 0));     // yield to the event loop
+      }
+    }
+    if (onProgress) onProgress(total, total);
+
+    return new opentype.Font({
+      familyName: (fontFileName.replace(/\.[^.]+$/, '') || 'Rasterized') + ' Rasterized',
+      styleName: res + 'px',
+      unitsPerEm: upm,
+      ascender: font.ascender,
+      descender: font.descender,
+      glyphs
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // sfnt table surgery — transplant the original font's raw cmap table into
+  // the rasterized OTF. We preserve glyph order (gid i -> gid i), so the
+  // original Unicode->gid cmap stays valid verbatim. This guarantees the
+  // exact same character mapping as the source, even for CID-keyed CFF fonts
+  // where opentype.js can't expose per-glyph Unicode values.
+  // -------------------------------------------------------------------------
+  function isSfnt(buf) {
+    const v = new DataView(buf).getUint32(0) >>> 0;
+    return v === 0x00010000 || v === 0x4F54544F /*OTTO*/ ||
+           v === 0x74727565 /*true*/ || v === 0x74797031 /*typ1*/;
+  }
+
+  function readTableDir(buf) {
+    const dv = new DataView(buf);
+    const numTables = dv.getUint16(4);
+    const tables = [];
+    for (let i = 0; i < numTables; i++) {
+      const rec = 12 + i * 16;
+      const tag = String.fromCharCode(dv.getUint8(rec), dv.getUint8(rec + 1),
+                                      dv.getUint8(rec + 2), dv.getUint8(rec + 3));
+      tables.push({ tag, offset: dv.getUint32(rec + 8), length: dv.getUint32(rec + 12) });
+    }
+    return tables;
+  }
+
+  function extractTable(buf, tag) {
+    if (!isSfnt(buf)) return null;             // e.g. WOFF source: can't splice raw
+    const t = readTableDir(buf).find(x => x.tag === tag);
+    return t ? new Uint8Array(buf, t.offset, t.length).slice() : null;
+  }
+
+  function tableChecksum(data) {
+    let sum = 0;
+    const n = data.length;
+    let i = 0;
+    for (; i + 4 <= n; i += 4) {
+      sum = (sum + ((data[i] << 24 | data[i+1] << 16 | data[i+2] << 8 | data[i+3]) >>> 0)) >>> 0;
+    }
+    if (i < n) {                                // tail, zero-padded
+      let last = 0;
+      for (let j = 0; j < 4; j++) last = (last << 8) | (i + j < n ? data[i + j] : 0);
+      sum = (sum + (last >>> 0)) >>> 0;
+    }
+    return sum >>> 0;
+  }
+
+  // Return a new ArrayBuffer where `tag`'s data is replaced by `newData`,
+  // with the directory, offsets, per-table checksums and head.checksumAdjustment
+  // all recomputed.
+  function replaceTable(buf, tag, newData) {
+    const dv = new DataView(buf);
+    const sfntVersion = dv.getUint32(0) >>> 0;
+    const dir = readTableDir(buf);
+    const pad4 = n => (n + 3) & ~3;
+
+    const data = {};
+    for (const t of dir) {
+      data[t.tag] = (t.tag === tag)
+        ? newData
+        : new Uint8Array(buf, t.offset, t.length).slice();
+    }
+    if (!(tag in data)) data[tag] = newData;    // tag wasn't present: add it
+    const tags = Object.keys(data).sort();      // sfnt requires sorted directory
+    const numTables = tags.length;
+
+    // zero head.checksumAdjustment before computing any checksum
+    if (data['head'] && data['head'].length >= 12) {
+      data['head'][8] = data['head'][9] = data['head'][10] = data['head'][11] = 0;
+    }
+
+    const headerSize = 12 + numTables * 16;
+    let offset = headerSize;
+    const layout = tags.map(t => {
+      const d = data[t];
+      const e = { tag: t, data: d, offset, length: d.length };
+      offset = pad4(offset + d.length);
+      return e;
+    });
+
+    const out = new Uint8Array(offset);
+    const odv = new DataView(out.buffer);
+    odv.setUint32(0, sfntVersion);
+    odv.setUint16(4, numTables);
+    const maxPow = Math.pow(2, Math.floor(Math.log2(numTables)));
+    odv.setUint16(6, maxPow * 16);
+    odv.setUint16(8, Math.floor(Math.log2(maxPow)));
+    odv.setUint16(10, numTables * 16 - maxPow * 16);
+
+    let rec = 12;
+    for (const l of layout) {
+      odv.setUint8(rec,     l.tag.charCodeAt(0));
+      odv.setUint8(rec + 1, l.tag.charCodeAt(1));
+      odv.setUint8(rec + 2, l.tag.charCodeAt(2));
+      odv.setUint8(rec + 3, l.tag.charCodeAt(3));
+      odv.setUint32(rec + 4, tableChecksum(l.data));
+      odv.setUint32(rec + 8, l.offset);
+      odv.setUint32(rec + 12, l.length);
+      out.set(l.data, l.offset);
+      rec += 16;
+    }
+
+    const head = layout.find(l => l.tag === 'head');
+    if (head) {
+      const adj = (0xB1B0AFBA - tableChecksum(out)) >>> 0;
+      odv.setUint32(head.offset + 8, adj);
+    }
+    return out.buffer;
+  }
+
+  async function download() {
+    if (!font) return;
+    dlBtn.disabled = true;
+    const oldLabel = dlBtn.textContent;
+    try {
+      const newFont = await buildRasterFontFull((i, total) => {
+        const pct = Math.round((i / total) * 100);
+        setStatus(`Rasterizing full set… ${i}/${total} (${pct}%)`);
+        dlBtn.textContent = `Rasterizing… ${pct}%`;
+      });
+      setStatus('Encoding font…');
+      dlBtn.textContent = 'Encoding…';
+      await new Promise(r => setTimeout(r, 0));
+
+      let buf = newFont.toArrayBuffer();
+
+      // Transplant the original cmap verbatim (glyph order is preserved).
+      let cmapNote = 'rebuilt cmap';
+      try {
+        const origCmap = fontArrayBuffer && extractTable(fontArrayBuffer, 'cmap');
+        if (origCmap) {
+          buf = replaceTable(buf, 'cmap', origCmap);
+          cmapNote = 'original cmap transplanted';
+        }
+      } catch (e) {
+        console.warn('cmap transplant failed, keeping rebuilt cmap:', e);
+      }
+
+      const blob = new Blob([buf], { type: 'font/otf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const base = fontFileName.replace(/\.[^.]+$/, '');
+      a.href = url;
+      a.download = `${base}_${resInput.value}px_rasterized.otf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setStatus(`Downloaded full set: ${a.download} · ${newFont.glyphs.length} glyphs · ${(buf.byteLength / 1024).toFixed(0)} KB · ${cmapNote}`);
+    } catch (e) {
+      console.error(e);
+      setStatus('Error generating font: ' + e.message);
+    } finally {
+      dlBtn.textContent = oldLabel;
+      dlBtn.disabled = false;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Wiring
+  // -------------------------------------------------------------------------
+  fontInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    fontFileName = file.name;
+    fileLabel.textContent = file.name;
+    setStatus('Parsing font…');
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        fontArrayBuffer = reader.result;
+        font = opentype.parse(reader.result);
+        contourCache.clear();
+        dlBtn.disabled = false;
+        setStatus(`Loaded: ${file.name} · ${font.glyphs.length} glyphs · ${font.unitsPerEm} upm`);
+        renderPreview();
+      } catch (err) {
+        console.error(err);
+        font = null;
+        dlBtn.disabled = true;
+        setStatus('Could not parse this font: ' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  resInput.addEventListener('input', () => { updateSliderFill(); renderPreview(); });
+  stretchInput.addEventListener('input', () => { updateSliderFill(); renderPreview(); });
+  textInput.addEventListener('input', renderPreview);
+  dlBtn.addEventListener('click', download);
+
+  updateSliderFill();
+})();
+</script>
+</body>
+</html>

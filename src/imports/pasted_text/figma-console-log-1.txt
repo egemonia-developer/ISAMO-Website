@@ -1,0 +1,66 @@
+Running frontend commit ea1b78f0c0eb8b574e10d196ee2691b0239b86a4
+vendor-core-34edd2c749031eb9.min.js.br:54 Statsig is not ready to log exposures, will retry in 1 seconds
+(anonymous) @ vendor-core-34edd2c749031eb9.min.js.br:54Understand this warning
+vendor-core-34edd2c749031eb9.min.js.br:54 [import] git: 62d8dd36312ac85114ff8c122b68e3f1dcbd51a1, stamp: 73107957FE5AD8BB
+vendor-core-34edd2c749031eb9.min.js.br:54 Loaded 43 scripts (6507552b), 43 from cache (6507552b)
+vendor-core-34edd2c749031eb9.min.js.br:54 Autosave Changes not available or already claimed by another tab undefined
+vendor-core-34edd2c749031eb9.min.js.br:54 [Fullscreen] Booting... (emscripten version 4.0.21)
+vendor-core-34edd2c749031eb9.min.js.br:54 [GPU] graphicsAPI:"WebGPU", vendor:"Google Inc. (Apple)" renderer:"ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)" deviceArchitecture:"metal-3" deviceDescription:"" webGPUDevice:"" webGPUVendor:"apple" bindings:"emdawnwebgpu"
+vendor-core-34edd2c749031eb9.min.js.br:54 [Fullscreen] Ready in 59.6ms
+vendor-core-34edd2c749031eb9.min.js.br:54 [FullscreenApp] calling setEditorTheme and setting preference light
+vendor-core-34edd2c749031eb9.min.js.br:54 [MultiplayerSession] connecting to wss://www.figma.com/api/multiplayer/DLSh2WBTd0jgfhJpVewfo6?role=editor&tracking_session_id=MjTEpqXrD3b0CtWA&version=151&recentReload=0&file-load-streaming-compression=&user-id=1062783669321750040&client_release=ea1b78f0c0eb8b574e10d196ee2691b0239b86a4&force-dpl-journaled-reconnect=1
+2vendor-core-34edd2c749031eb9.min.js.br:54 [FullscreenApp] calling setEditorTheme and setting preference light
+(index):1  Failed to load resource: net::ERR_FAILEDUnderstand this error
+vendor-core-34edd2c749031eb9.min.js.br:54 [MultiplayerSession] Joining file version 101 (initial load)
+vendor-core-34edd2c749031eb9.min.js.br:54 [devtools] Initialized LS
+/api/plans/917b8f59-73dd-46cb-8d28-51d8ef2cb0d8/npm_private_registry/scopes:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+/api/make/DLSh2WBTd0jgfhJpVewfo6/cached_preview_urls?source_code_hash=8eb530b12eea21e02601e7e0626c93cf48766c31:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+vendor-core-34edd2c749031eb9.min.js.br:54 [devtools] Initialized LS
+vendor-core-34edd2c749031eb9.min.js.br:54 [Fullscreen] loadtime=3.21s maxmem=10359512
+Home-screen-selection-interface?p=f&t=MsefOCHoXF8HDzI8-0&fullscreen=1:1 Access to image at 'https://www.gravatar.com/avatar/897a161e29686360defd61a85b2c1c16?size=240&default=https%3A%2F%2Fs3-alpha.figma.com%2Fstatic%2Fuser_l_v2.png?c=1' from origin 'https://www.figma.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+www.gravatar.com/avatar/897a161e29686360defd61a85b2c1c16?size=240&default=https%3A%2F%2Fs3-alpha.figma.com%2Fstatic%2Fuser_l_v2.png?c=1:1  Failed to load resource: net::ERR_FAILEDUnderstand this error
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Sounds loaded from public folder: Object
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Playing sound: horizontal
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Audio object: <audio preload=​"auto" src=​"/​sounds/​horizontal.mp3">​</audio>​media src: https://d461177c-f16d-4e51-ae5b-c42ba8822317-v3-figmaiframepreview.figma.site/sounds/horizontal.mp3 volume: 0.7
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:17 Audio play error: horizontal NotSupportedError: The element has no supported sources.
+r @ code_components_preview_iframe-fbb29418dc013c14.min.js.br:17Understand this error
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Playing sound: horizontal
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Audio object: <audio preload=​"auto" src=​"/​sounds/​horizontal.mp3">​</audio>​media src: https://d461177c-f16d-4e51-ae5b-c42ba8822317-v3-figmaiframepreview.figma.site/sounds/horizontal.mp3 volume: 0.7
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:17 Audio play error: horizontal NotSupportedError: The element has no supported sources.
+r @ code_components_preview_iframe-fbb29418dc013c14.min.js.br:17Understand this error
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Playing sound: horizontal
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Audio object: <audio preload=​"auto" src=​"/​sounds/​horizontal.mp3">​</audio>​media src: https://d461177c-f16d-4e51-ae5b-c42ba8822317-v3-figmaiframepreview.figma.site/sounds/horizontal.mp3 volume: 0.7
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:17 Audio play error: horizontal NotSupportedError: The element has no supported sources.
+r @ code_components_preview_iframe-fbb29418dc013c14.min.js.br:17Understand this error
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Playing sound: horizontal
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Audio object: <audio preload=​"auto" src=​"/​sounds/​horizontal.mp3">​</audio>​media src: https://d461177c-f16d-4e51-ae5b-c42ba8822317-v3-figmaiframepreview.figma.site/sounds/horizontal.mp3 volume: 0.7
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:17 Audio play error: horizontal NotSupportedError: The element has no supported sources.
+r @ code_components_preview_iframe-fbb29418dc013c14.min.js.br:17Understand this error
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Playing sound: horizontal
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Audio object: <audio preload=​"auto" src=​"/​sounds/​horizontal.mp3">​</audio>​media src: https://d461177c-f16d-4e51-ae5b-c42ba8822317-v3-figmaiframepreview.figma.site/sounds/horizontal.mp3 volume: 0.7
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:17 Audio play error: horizontal NotSupportedError: The element has no supported sources.
+r @ code_components_preview_iframe-fbb29418dc013c14.min.js.br:17Understand this error
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Playing sound: horizontal
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Audio object: <audio preload=​"auto" src=​"/​sounds/​horizontal.mp3">​</audio>​media src: https://d461177c-f16d-4e51-ae5b-c42ba8822317-v3-figmaiframepreview.figma.site/sounds/horizontal.mp3 volume: 0.7
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:17 Audio play error: horizontal NotSupportedError: The element has no supported sources.
+r @ code_components_preview_iframe-fbb29418dc013c14.min.js.br:17Understand this error
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Playing sound: horizontal
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Audio object: <audio preload=​"auto" src=​"/​sounds/​horizontal.mp3">​</audio>​media src: https://d461177c-f16d-4e51-ae5b-c42ba8822317-v3-figmaiframepreview.figma.site/sounds/horizontal.mp3 volume: 0.7
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:17 Audio play error: horizontal NotSupportedError: The element has no supported sources.
+r @ code_components_preview_iframe-fbb29418dc013c14.min.js.br:17Understand this error
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Playing sound: horizontal
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Audio object: <audio preload=​"auto" src=​"/​sounds/​horizontal.mp3">​</audio>​media src: https://d461177c-f16d-4e51-ae5b-c42ba8822317-v3-figmaiframepreview.figma.site/sounds/horizontal.mp3 volume: 0.7
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:17 Audio play error: horizontal NotSupportedError: The element has no supported sources.
+r @ code_components_preview_iframe-fbb29418dc013c14.min.js.br:17Understand this error
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Playing sound: horizontal
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Audio object: <audio preload=​"auto" src=​"/​sounds/​horizontal.mp3">​</audio>​media src: https://d461177c-f16d-4e51-ae5b-c42ba8822317-v3-figmaiframepreview.figma.site/sounds/horizontal.mp3 volume: 0.7
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:17 Audio play error: horizontal NotSupportedError: The element has no supported sources.
+r @ code_components_preview_iframe-fbb29418dc013c14.min.js.br:17Understand this error
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Playing sound: horizontal
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Audio object: <audio preload=​"auto" src=​"/​sounds/​horizontal.mp3">​</audio>​media src: https://d461177c-f16d-4e51-ae5b-c42ba8822317-v3-figmaiframepreview.figma.site/sounds/horizontal.mp3 volume: 0.7
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:17 Audio play error: horizontal NotSupportedError: The element has no supported sources.
+r @ code_components_preview_iframe-fbb29418dc013c14.min.js.br:17Understand this error
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Playing sound: horizontal
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:106 Audio object: <audio preload=​"auto" src=​"/​sounds/​horizontal.mp3">​</audio>​media src: https://d461177c-f16d-4e51-ae5b-c42ba8822317-v3-figmaiframepreview.figma.site/sounds/horizontal.mp3 volume: 0.7
+code_components_preview_iframe-fbb29418dc013c14.min.js.br:17 Audio play error: horizontal NotSupportedError: The element has no supported sources.
+r @ code_components_preview_iframe-fbb29418dc013c14.min.js.br:17Understand this error

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080.25 1080.25">
+  <rect x="337.58" y="405.11" width="405.09" height="67.51"/>
+  <rect x="202.55" y="472.62" width="675.16" height="67.51"/>
+  <rect x="337.58" y="1012.56" width="405.09" height="67.51" transform="translate(1080.25 2092.64) rotate(180)"/>
+  <rect x="202.55" y="945.06" width="135.03" height="67.51" transform="translate(540.13 1957.62) rotate(180)"/>
+  <rect x="742.67" y="945.06" width="135.03" height="67.51" transform="translate(1620.38 1957.62) rotate(180)"/>
+  <rect x="67.52" y="877.49" width="135.03" height="67.51" transform="translate(270.06 1822.49) rotate(180)"/>
+  <rect x="877.7" y="877.49" width="135.03" height="67.51" transform="translate(1890.44 1822.49) rotate(180)"/>
+  <rect x="877.7" y="742.45" width="67.52" height="67.51" transform="translate(1822.92 1552.4) rotate(180)"/>
+  <rect x="135.03" y="540.12" width="67.52" height="67.51" transform="translate(337.58 1147.76) rotate(180)"/>
+  <rect x="877.7" y="540.12" width="67.52" height="67.51" transform="translate(1822.92 1147.76) rotate(180)"/>
+  <rect x="135.03" y="742.59" width="67.52" height="67.51" transform="translate(337.58 1552.69) rotate(180)"/>
+  <rect x="270.07" y="675.12" width="67.52" height="67.51" transform="translate(607.65 1417.74) rotate(180)"/>
+  <rect x="337.59" y="809.85" width="67.52" height="67.51" transform="translate(742.69 1687.2) rotate(180)"/>
+  <rect x="472.61" y="742.59" width="135.03" height="67.51" transform="translate(1080.25 1552.69) rotate(180)"/>
+  <rect x="675.16" y="809.85" width="67.52" height="67.51" transform="translate(1417.84 1687.2) rotate(180)"/>
+  <rect x="404.61" y="877.49" width="270.55" height="67.51" transform="translate(1079.76 1822.49) rotate(180)"/>
+  <rect x="742.68" y="675.12" width="67.52" height="67.51" transform="translate(1552.87 1417.74) rotate(180)"/>
+  <rect x="337.58" y="67.87" width="67.53" height="270.05"/>
+  <rect x="270.06" y=".35" width="67.53" height="67.53"/>
+  <rect x="202.55" y="67.88" width="67.53" height="337.55"/>
+  <rect x="675.16" y="67.87" width="67.53" height="270.05" transform="translate(1417.84 405.79) rotate(180)"/>
+  <rect x="742.67" y=".35" width="67.53" height="67.53" transform="translate(1552.87 68.23) rotate(180)"/>
+  <rect x="810.19" y="67.88" width="67.53" height="337.55" transform="translate(1687.9 473.31) rotate(180)"/>
+</svg>

@@ -1,0 +1,45 @@
+/* ============================================================================
+   CUSTOM FONT: Isamo Rasterize
+   ============================================================================
+
+   IMPORTANTE: Questo font NON funzionerà in Figma Make (file .ttf non supportati)
+
+   QUANDO ESPORTI IL PROGETTO:
+   1. Carica il file "isamo-rasterize.ttf" in /public/fonts/
+   2. Questo CSS è già configurato e funzionerà automaticamente
+
+   ============================================================================ */
+
+/* Main UI font — ISAMO Sans Display. Both former families (Rasterize + Fat) now
+   point to the same new font; only the Japanese face (below) is left untouched. */
+@font-face {
+  font-family: 'Isamo Rasterize';
+  src: url('/fonts/isamo-sans-display.otf?v=3') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Isamo Fat';
+  src: url('/fonts/isamo-sans-display.otf?v=3') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Japanese mode — Hiragino Sans GB W3 (rasterized 36px). Used only for Japanese
+   glyphs; Latin keeps the base Isamo font via the font-family fallback chain. */
+@font-face {
+  font-family: 'Isamo Jap';
+  src: url('/fonts/isamo-jap.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Swappable UI font families — overridden on <html> for Japanese mode (see App.tsx). */
+:root {
+  --font-main: 'Isamo Rasterize', sans-serif;
+  --font-fat:  'Isamo Fat', sans-serif;
+}

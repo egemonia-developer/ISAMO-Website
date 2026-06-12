@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080.25 1080.25">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #000;
+        stroke-miterlimit: 10;
+        stroke-width: .25px;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1" data-name="Layer 1">
+    <rect x="540.21" y="540.18" width="67.59" height="404.97"/>
+    <rect x="540.12" y="405.09" width="202.55" height="67.51"/>
+    <rect x="742.67" y="472.6" width="135.03" height="67.51"/>
+    <rect x="945.22" y="607.61" width="67.51" height="135.01"/>
+    <rect x="877.71" y="540.1" width="67.51" height="67.51"/>
+    <rect x="540.12" y="1012.52" width="472.61" height="67.51"/>
+    <rect x="911.48" y="843.89" width="270.03" height="67.51" transform="translate(168.85 1924.14) rotate(-90)"/>
+    <rect x="-270.02" y="675.12" width="607.57" height="67.51" transform="translate(-675.11 742.64) rotate(-90)"/>
+    <rect x="0" y="405.09" width="540.12" height="67.51" transform="translate(540.13 877.68) rotate(180)"/>
+    <rect x="0" y="1012.52" width="540.12" height="67.51" transform="translate(540.13 2092.54) rotate(180)"/>
+    <rect x="540.21" y="540.18" width="135.03" height="67.36"/>
+    <rect x="675.24" y="607.61" width="67.36" height="67.36"/>
+    <rect x="607.8" y="877.71" width="67.36" height="67.36"/>
+    <rect x="607.8" y="675.19" width="67.36" height="67.36"/>
+    <rect x="675.24" y="742.66" width="67.36" height="202.41"/>
+    <rect x="270.07" y="540.18" width="67.59" height="404.97"/>
+    <rect x="270.07" y="540.18" width="135.03" height="67.36"/>
+    <rect x="405.1" y="607.61" width="67.36" height="67.36"/>
+    <rect x="337.66" y="675.19" width="67.36" height="67.36"/>
+    <rect x="405.1" y="742.66" width="67.36" height="202.41"/>
+  </g>
+  <g id="Layer_2" data-name="Layer 2">
+    <g>
+      <rect class="cls-1" y=".04" width="1080.25" height="1080.12"/>
+      <line class="cls-1" y1="1012.66" x2="1080.25" y2="1012.66"/>
+      <line class="cls-1" y1="945.15" x2="1080.25" y2="945.15"/>
+      <line class="cls-1" y1="877.64" x2="1080.25" y2="877.64"/>
+      <line class="cls-1" y1="810.13" x2="1080.25" y2="810.13"/>
+      <line class="cls-1" y1="742.63" x2="1080.25" y2="742.63"/>
+      <line class="cls-1" y1="675.12" x2="1080.25" y2="675.12"/>
+      <line class="cls-1" y1="607.61" x2="1080.25" y2="607.61"/>
+      <line class="cls-1" y1="540.1" x2="1080.25" y2="540.1"/>
+      <line class="cls-1" y1="472.6" x2="1080.25" y2="472.6"/>
+      <line class="cls-1" y1="405.09" x2="1080.25" y2="405.09"/>
+      <line class="cls-1" y1="337.58" x2="1080.25" y2="337.58"/>
+      <line class="cls-1" y1="270.07" x2="1080.25" y2="270.07"/>
+      <line class="cls-1" y1="202.56" x2="1080.25" y2="202.56"/>
+      <line class="cls-1" y1="135.06" x2="1080.25" y2="135.06"/>
+      <line class="cls-1" y1="67.55" x2="1080.25" y2="67.55"/>
+      <line class="cls-1" x1="1012.73" y1=".04" x2="1012.73" y2="1080.17"/>
+      <line class="cls-1" x1="945.22" y1=".04" x2="945.22" y2="1080.17"/>
+      <line class="cls-1" x1="877.7" y1=".04" x2="877.7" y2="1080.17"/>
+      <line class="cls-1" x1="810.19" y1=".04" x2="810.19" y2="1080.17"/>
+      <line class="cls-1" x1="742.67" y1=".04" x2="742.67" y2="1080.17"/>
+      <line class="cls-1" x1="675.16" y1=".04" x2="675.16" y2="1080.17"/>
+      <line class="cls-1" x1="607.64" y1=".04" x2="607.64" y2="1080.17"/>
+      <line class="cls-1" x1="540.12" y1=".04" x2="540.12" y2="1080.17"/>
+      <line class="cls-1" x1="472.61" y1=".04" x2="472.61" y2="1080.17"/>
+      <line class="cls-1" x1="405.09" y1=".04" x2="405.09" y2="1080.17"/>
+      <line class="cls-1" x1="337.58" y1=".04" x2="337.58" y2="1080.17"/>
+      <line class="cls-1" x1="270.06" y1=".04" x2="270.06" y2="1080.17"/>
+      <line class="cls-1" x1="202.55" y1=".04" x2="202.55" y2="1080.17"/>
+      <line class="cls-1" x1="135.03" y1=".04" x2="135.03" y2="1080.17"/>
+      <line class="cls-1" x1="67.52" y1=".04" x2="67.52" y2="1080.17"/>
+    </g>
+  </g>
+</svg>

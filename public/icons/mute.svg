@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080.25 1080.25">
+  <rect x="472.48" y="877.56" width="135.03" height="67.52"/>
+  <rect x="472.48" y="135.06" width="135.03" height="67.52"/>
+  <rect x="404.97" y="202.76" width="67.52" height="67.59"/>
+  <rect x="337.45" y="269.99" width="67.52" height="67.59"/>
+  <rect x="269.94" y="337.58" width="67.52" height="67.59"/>
+  <rect x="404.97" y="809.61" width="67.52" height="67.59"/>
+  <rect x="337.45" y="742.37" width="67.52" height="67.59"/>
+  <rect x="269.94" y="674.78" width="67.52" height="67.59"/>
+  <rect x="134.9" y="405.09" width="135.03" height="67.51"/>
+  <rect x="67.39" y="405.09" width="67.51" height="269.7"/>
+  <rect x="540" y="202.76" width="67.51" height="674.8"/>
+  <rect x="134.9" y="607.61" width="135.03" height="67.51"/>
+  <rect x="675.1" y="337.68" width="67.24" height="67.24"/>
+  <rect x="742.57" y="405.15" width="67.24" height="67.24"/>
+  <rect x="810.03" y="472.61" width="67.24" height="67.24"/>
+  <rect x="877.49" y="540.07" width="67.24" height="67.24"/>
+  <rect x="944.96" y="607.54" width="67.24" height="67.24"/>
+  <rect x="944.96" y="337.68" width="67.24" height="67.24" transform="translate(1957.15 742.6) rotate(180)"/>
+  <rect x="877.49" y="405.15" width="67.24" height="67.24" transform="translate(1822.23 877.53) rotate(180)"/>
+  <rect x="810.03" y="472.61" width="67.24" height="67.24" transform="translate(1687.3 1012.46) rotate(180)"/>
+  <rect x="742.57" y="540.07" width="67.24" height="67.24" transform="translate(1552.37 1147.38) rotate(180)"/>
+  <rect x="675.1" y="607.54" width="67.24" height="67.24" transform="translate(1417.45 1282.31) rotate(180)"/>
+</svg>

@@ -1,0 +1,52 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+/* SPA baseline — prevent scrollbars from appearing when AnimatePresence
+   keeps two screens mounted simultaneously during route transitions. */
+html, body {
+  overflow: hidden;
+  height: 100%;
+  cursor: url('/icons/cursor.svg') 10 10, crosshair;
+}
+
+/* Hide scrollbars while keeping the element scrollable (Board grid, etc.). */
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+/* Force font inheritance on form elements — Tailwind preflight sets
+   font-size:100% and font-family:inherit which can conflict with inline styles. */
+input, button, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Controller mode: hide the system cursor everywhere, including elements that
+   set their own `cursor: pointer` inline (XMB cols, pills, moodboard, etc.).
+   The class toggles on the <html> root from App.tsx. */
+html.cursor-hidden,
+html.cursor-hidden *,
+html.cursor-hidden *::before,
+html.cursor-hidden *::after {
+  cursor: none !important;
+}
+
+/* Splash video gallery — continuous vertical auto-scroll. The list is duplicated,
+   so translating by -50% loops seamlessly. */
+@keyframes splash-vscroll {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+
+/* Clickable elements turn the theme complement colour on hover (text only — fill is
+   left alone so pill / icon backgrounds keep their colour). Targets inline
+   `cursor: pointer`, the dominant interactive pattern in this app. */
+[style*="cursor: pointer"]:not(.no-hover-tint):hover,
+[style*="cursor:pointer"]:not(.no-hover-tint):hover,
+[style*="cursor: pointer"]:not(.no-hover-tint):hover :where(span, p),
+[style*="cursor:pointer"]:not(.no-hover-tint):hover :where(span, p) {
+  color: var(--ui-complement) !important;
+}
+/* …but never tint an opted-out subtree (e.g. the upload-prompt preview). */
+.no-hover-tint:hover, .no-hover-tint:hover :where(span, p) { color: var(--ui-fg) !important; }

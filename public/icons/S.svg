@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080.25 1080.25">
+  <rect x="0" y=".18" width="1080.25" height="67.51" transform="translate(1080.25 67.87) rotate(180)"/>
+  <rect x="-168.79" y="506.51" width="405.09" height="67.51" transform="translate(-506.51 574.02) rotate(-90)"/>
+  <rect x="337.58" y="1012.52" width="202.55" height="67.51" transform="translate(877.71 2092.54) rotate(180)"/>
+  <rect x="-472.41" y="540.1" width="1012.34" height="67.51" transform="translate(-540.1 607.61) rotate(-90)"/>
+  <rect x="540.33" y="540.1" width="1012.34" height="67.51" transform="translate(472.64 1620.35) rotate(-90)"/>
+  <rect x="540.12" y=".18" width="202.55" height="67.51"/>
+  <rect x="843.95" y="506.51" width="405.09" height="67.51" transform="translate(506.23 1586.76) rotate(-90)"/>
+  <rect x="0" y="1012.52" width="1080.25" height="67.51"/>
+  <rect x="405.14" y="202.63" width="270.08" height="67.59"/>
+  <rect x="405.14" y="810.13" width="270.08" height="67.59"/>
+  <rect x="675.17" y="269.98" width="67.51" height="67.59" transform="translate(1417.86 607.56) rotate(180)"/>
+  <rect x="742.68" y="337.62" width="67.51" height="67.59" transform="translate(1552.87 742.83) rotate(180)"/>
+  <rect x="675.17" y="742.85" width="67.51" height="67.59" transform="translate(1417.86 1553.29) rotate(180)"/>
+  <rect x="742.68" y="675.22" width="67.51" height="67.59" transform="translate(1552.87 1418.03) rotate(180)"/>
+  <rect x="337.58" y="269.98" width="67.51" height="67.59"/>
+  <rect x="270.07" y="337.62" width="67.51" height="67.59"/>
+  <rect x="337.58" y="742.83" width="67.51" height="67.59"/>
+  <rect x="270.07" y="675.2" width="67.51" height="67.59"/>
+  <rect x="337.53" y="405.21" width="67.59" height="67.45"/>
+  <rect x="405" y="472.68" width="135.12" height="67.45"/>
+  <rect x="539.97" y="540.15" width="135.12" height="67.45"/>
+  <rect x="675.14" y="607.46" width="67.59" height="67.59"/>
+</svg>

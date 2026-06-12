@@ -1,0 +1,7 @@
+numpy
+scipy
+freetype-py
+fonttools
+ufoLib2
+ufo-extractor>=0.8.1
+tqdm
