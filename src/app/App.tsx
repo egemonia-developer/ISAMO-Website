@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LoadingScreen, warmMediaCache } from './LoadingScreen';
+import { LoadingScreen } from './LoadingScreen';
 import { SplashScreen } from './SplashScreen';
 import { Home, applyColorVars } from './Home';
 import { WordReveal } from './WordReveal';
@@ -11,7 +11,6 @@ import { type Lang } from './i18n/strings';
 
 import { useGamepadNav } from './hooks/useGamepadNav';
 import { cursorState } from './hooks/cursorState';
-import { useLowConnection } from './hooks/useLowConnection';
 import { preloadUiSounds, playUi, setUiMuted } from './audio/uiSounds';
 import { preloadKeyboardSounds, setKeyboardSoundMuted } from './audio/keyboardSounds';
 
@@ -247,19 +246,6 @@ export default function App() {
   // Global loading indicator (driven by the TTS engine while it warms up speech).
   const [ttsLoading, setTtsLoading] = useState(getTtsLoading);
   useEffect(() => subscribeTtsLoading(setTtsLoading), []);
-
-  // Warm the HTTP cache for every board/gallery video + library sound once Home
-  // is reached, so they play back instantly. Deferred (and delayed) so these
-  // ~56 large fetches don't steal bandwidth from the loading screen's sounds
-  // or the splash→home transition sound that plays right before this. Runs once.
-  const lowConnection = useLowConnection();
-  const warmedRef = useRef(false);
-  useEffect(() => {
-    if (screen !== 'home' || warmedRef.current) return;
-    warmedRef.current = true;
-    const t = setTimeout(() => warmMediaCache(lowConnection), 1500);
-    return () => clearTimeout(t);
-  }, [screen, lowConnection]);
 
   // Japanese mode: Latin keeps the base Isamo font; Japanese glyphs (absent from
   // the Isamo fonts) fall through to 'Isamo Jap' (rasterized Hiragino Sans GB).

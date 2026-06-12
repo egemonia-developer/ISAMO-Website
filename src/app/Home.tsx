@@ -349,13 +349,6 @@ const CATEGORIES: Category[] = [
   },
 ];
 
-// Every sound id in the Library category — used to resolve `/sounds/{id}.mp3`.
-// Preloaded in full by the loading screen for instant playback.
-export const LIBRARY_SOUND_IDS: string[] = CATEGORIES[0].xItems
-  .flatMap(x => x.zItems ?? [])
-  .flatMap(z => z.wItems ?? [])
-  .map(w => w.id);
-
 // ── Sound-path lookup ─────────────────────────────────────────────────────────
 // Resolves a pill tag (e.g. 'B.A.01') → { y, x, z, w } navigation indices.
 // Tries the tag as-is, then strips a leading dot before trailing digits

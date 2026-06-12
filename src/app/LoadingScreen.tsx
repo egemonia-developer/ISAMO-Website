@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { playKeyboardSound, preloadKeyboardSounds } from './audio/keyboardSounds';
 import { preloadUiSounds } from './audio/uiSounds';
-import { INITIAL_BOARD_VIDEOS, LIBRARY_SOUND_IDS } from './Home';
-import { toLowQuality } from './VideoTile';
 
 interface Props {
   onComplete: () => void;
@@ -14,21 +12,6 @@ const MAX_WAIT_MS    = 9000; // hard cap so a slow connection never blocks the U
 const BANG_HOLD_MS   = 1150; // how long "(!)" stays on screen before "(ISAMO !)"
 const LOADED_HOLD_MS = 1300; // how long "(ISAMO !)" stays before completing
 const CLOSE_MS       =  160; // brackets snap shut before the "!" pops in and reopens them
-
-// Fetches every URL into the browser's HTTP cache (fire-and-forget per file —
-// failures are ignored). Used to warm the cache for board/gallery videos and
-// the sound library so playback is instant once the user navigates to them.
-//
-// NOT called from preloadAssets(): kicking off ~56 large fetches at the same
-// time as the loading screen's own small audio files (keyboard/UI sounds,
-// "ui-loading_end.mp3", and the splash→home transition sound right after)
-// starves those tiny requests of bandwidth and delays/silences them. Call this
-// only once those sounds have had a chance to play (see App.tsx).
-export function warmMediaCache(lowConnection: boolean): void {
-  const videoSrcs = INITIAL_BOARD_VIDEOS.map(v => lowConnection ? toLowQuality(v.src) : v.src);
-  const soundSrcs = LIBRARY_SOUND_IDS.map(id => `/sounds/${id}.mp3`);
-  [...videoSrcs, ...soundSrcs].forEach(url => { fetch(url).then(r => r.blob()).catch(() => {}); });
-}
 
 // ── Asset preloading — the dot animation loops (repeat: Infinity) until both
 // LOAD_MIN_MS has elapsed AND every asset below is ready (or MAX_WAIT_MS hits). ──
