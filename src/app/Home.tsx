@@ -694,7 +694,7 @@ function MoodboardVideoItem({ src, isActive, isMuted, fullView = false }: { src:
     <video
       ref={ref}
       src={src}
-      muted loop playsInline
+      muted loop playsInline preload="metadata"
       style={{ width: '100%', display: 'block',
                aspectRatio: fullView ? '16 / 9' : '1 / 1',
                objectFit: fullView ? 'contain' : 'cover' }}
@@ -5147,7 +5147,10 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                         <MoodboardVideoItem src={v.src} isActive={isSelected} isMuted={isMuted} fullView={boardCols === 1} />
                       </motion.div>
 
-                      {/* Mute icon overlay */}
+                      {/* Mute icon overlay — `mixBlendMode` only while actually visible:
+                          with 24 of these always mounted, leaving 'difference' on the
+                          hidden ones keeps every one of them in the compositor's blend
+                          isolation group for no visual benefit. */}
                       <motion.div
                         animate={{
                           opacity: muteFlashSet.has(idx) ? 1
@@ -5155,7 +5158,8 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                         }}
                         transition={{ duration: muteFlashSet.has(idx) ? 0.12 : 0.55, ease: 'easeOut' }}
                         style={{ position: 'absolute', inset: 0, display: 'flex',
-                                 alignItems: 'center', justifyContent: 'center', mixBlendMode: 'difference' }}
+                                 alignItems: 'center', justifyContent: 'center',
+                                 mixBlendMode: (muteFlashSet.has(idx) || isHovered || (inputMode === 'controller' && isSelected)) ? 'difference' : 'normal' }}
                       >
                         <Icon key={isMuted ? 'muted' : 'unmuted'}
                           name={isMuted ? 'mute' : 'unmute'} size="6vh" color="#fff" />

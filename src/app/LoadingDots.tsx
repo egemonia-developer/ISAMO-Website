@@ -1,12 +1,13 @@
 import { motion, AnimatePresence } from 'motion/react';
 
 // ── Loading-dots overlay ──────────────────────────────────────────────────────
-// The three blinking dots from the LoadingScreen, blown up to the logo-hover
-// (WordReveal) size and shown as a fixed, complement-coloured overlay in front
-// of everything. Use it to indicate that something is loading (e.g. the ometto
-// warming up its speech).
+// The three blinking dots from the LoadingScreen, set in the UI font and blown
+// up to roughly the logo-hover (WordReveal) size, shown as a fixed,
+// complement-coloured overlay in front of everything. Use it to indicate that
+// something is loading (e.g. the ometto warming up its speech).
 
-const DOT_XS = [270.8, 540.86, 810.92] as const;
+const FONT = "var(--font-main)";
+const DOT_GAP = '0.18em';
 
 // Vertical offset of the shared ISAMO central axis from the viewport centre
 // (mirrors ANCHOR_TOP / axisY in Home & SplashScreen): 50% + LOGO_TOP/2 − 36.
@@ -42,27 +43,20 @@ export function LoadingDots({ active }: { active: boolean }) {
             pointerEvents: 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--ui-complement)',
+            transform: `translateY(${AXIS_OFFSET}px)`,
           }}
         >
-          {/* Same viewBox as the loading screen; sized to roughly the logo-hover scale. */}
-          <svg
-            viewBox="0 0 1216.75 1080.25"
-            style={{ width: 'min(80vw, 90vh)', height: 'auto', overflow: 'visible',
-                     transform: `translateY(${AXIS_OFFSET}px)` }}
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            {DOT_XS.map((x, i) => (
-              <motion.rect
-                key={x}
-                fill="currentColor"
-                x={x} y={472.61} width={135.03} height={135.03}
-                custom={i}
-                variants={dotVariants}
-                initial="idle"
-                animate="animating"
-              />
+          <div style={{
+            display: 'flex', gap: DOT_GAP,
+            fontFamily: FONT, fontSize: 'min(18vw, 22vh)', lineHeight: 1,
+            whiteSpace: 'nowrap', userSelect: 'none',
+          }}>
+            {[0, 1, 2].map(i => (
+              <motion.span key={i} custom={i} variants={dotVariants} initial="idle" animate="animating">
+                .
+              </motion.span>
             ))}
-          </svg>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

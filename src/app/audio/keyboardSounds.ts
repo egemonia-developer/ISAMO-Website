@@ -24,19 +24,20 @@ const FILES = [
 const VOLUME = 0.55;
 
 const buffers: AudioBuffer[] = [];
-let   loaded                 = false;
 let   muted                  = false;
 // Index of the last file played — used to guarantee variety
 let   lastIdx                = -1;
 
-/** Fetch + decode all keyboard samples. Must be called after a user gesture. */
-export function preloadKeyboardSounds() {
-  if (loaded) return;
-  loaded = true;
-  for (let i = 0; i < FILES.length; i++) {
-    const idx = i; // capture for closure
-    loadBuffer(FILES[idx]).then(buf => { buffers[idx] = buf; }).catch(() => {});
+let loadPromise: Promise<void> | null = null;
+
+/** Fetch + decode all keyboard samples. Resolves once every sample is ready (or failed). */
+export function preloadKeyboardSounds(): Promise<void> {
+  if (!loadPromise) {
+    loadPromise = Promise.all(
+      FILES.map((file, idx) => loadBuffer(file).then(buf => { buffers[idx] = buf; }).catch(() => {}))
+    ).then(() => {});
   }
+  return loadPromise;
 }
 
 /** Pick a random sample (never the same as the last one) and play it. */

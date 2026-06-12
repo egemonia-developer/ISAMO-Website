@@ -193,6 +193,7 @@ export function SplashScreen({ onStart, inputMode = 'keyboard', onControllerInpu
   const listHeightRef  = useRef(0);          // height of one (un-duplicated) list
   const pausedRef      = useRef(false);      // auto-scroll paused (hover / wheel)
   const wheelIdleRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pointerRafRef  = useRef<number | null>(null);  // rAF-gates handlePointer's elementFromPoint hit-test
   // Keyboard navigation of the gallery (null = not focused on the gallery yet).
   const galleryIdxRef = useRef<number | null>(null);
   // Selected row index in the duplicated list → drives bracket + title zoom.
@@ -248,26 +249,34 @@ export function SplashScreen({ onStart, inputMode = 'keyboard', onControllerInpu
     playUi(dir === 1 ? 'verticalDown' : 'verticalUp');
   };
 
+  // rAF-gated: `elementFromPoint` is a hit-test against the (continuously,
+  // rAF-transformed) scroll layer, so running it on every raw mousemove stacks
+  // a second hit-test onto the same frame as the auto-scroll tick. Coalescing
+  // to one hit-test per frame keeps fast mouse movement from doubling that cost.
   const handlePointer = (e: React.MouseEvent) => {
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    // Selection is driven by the metadata text only — hovering a video does nothing.
-    const meta = el ? el.closest('[data-meta]') : null;
-    if (meta) {
-      const row = meta.closest('[data-row]');
-      if (row) {
-        pausedRef.current = true;
-        if (row !== currentRowRef.current) {
-          currentRowRef.current = row;
-          // Keep keyboard nav + selection visuals in sync with the hovered row
-          const rows = alignLayerRef.current?.querySelectorAll('[data-row]');
-          if (rows) { const pos = Array.prototype.indexOf.call(rows, row); if (pos >= 0) { galleryIdxRef.current = pos % projects.length; setSelIdx(pos); } }
-          selectRow(row);
+    const { clientX, clientY } = e;
+    if (pointerRafRef.current !== null) return;
+    pointerRafRef.current = requestAnimationFrame(() => {
+      pointerRafRef.current = null;
+      const el = document.elementFromPoint(clientX, clientY);
+      // Selection is driven by the metadata text only — hovering a video does nothing.
+      const meta = el ? el.closest('[data-meta]') : null;
+      if (meta) {
+        const row = meta.closest('[data-row]');
+        if (row) {
+          pausedRef.current = true;
+          if (row !== currentRowRef.current) {
+            currentRowRef.current = row;
+            // Keep keyboard nav + selection visuals in sync with the hovered row
+            const rows = alignLayerRef.current?.querySelectorAll('[data-row]');
+            if (rows) { const pos = Array.prototype.indexOf.call(rows, row); if (pos >= 0) { galleryIdxRef.current = pos % projects.length; setSelIdx(pos); } }
+            selectRow(row);
+          }
         }
-        return;
       }
-    }
-    // Pointer is on a video / empty space → keep the current selection
-    // (released only by leaving the gallery or hovering another title).
+      // Pointer is on a video / empty space → keep the current selection
+      // (released only by leaving the gallery or hovering another title).
+    });
   };
 
   // Clear the current selection (playing video + visuals).
@@ -312,7 +321,10 @@ export function SplashScreen({ onStart, inputMode = 'keyboard', onControllerInpu
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      if (pointerRafRef.current !== null) cancelAnimationFrame(pointerRafRef.current);
+    };
   }, []);
 
   // Measure one (un-duplicated) list height for the wrap point.
@@ -424,7 +436,10 @@ export function SplashScreen({ onStart, inputMode = 'keyboard', onControllerInpu
                     muted loop playsInline preload="metadata"
                     style={{ height: '40vh', aspectRatio: '1 / 1', objectFit: 'cover', display: 'block', filter: 'grayscale(1)', transition: 'filter 0.3s ease' }}
                   />
-                  {/* Mute / unmute overlay — like the Board: blended (difference), shown on selection, click toggles audio */}
+                  {/* Mute / unmute overlay — like the Board: blended (difference), shown on selection, click toggles audio.
+                      `mixBlendMode` is only set while selected — with 20 of these rows mounted,
+                      leaving 'difference' on the rest keeps them all in the compositor's blend
+                      isolation group for no visual benefit. */}
                   <motion.div
                     animate={{ opacity: isSelected ? 0.75 : 0 }}
                     transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -443,7 +458,7 @@ export function SplashScreen({ onStart, inputMode = 'keyboard', onControllerInpu
                     style={{
                       position: 'absolute', inset: 0, display: 'flex',
                       alignItems: 'center', justifyContent: 'center',
-                      mixBlendMode: 'difference', cursor: 'pointer',
+                      mixBlendMode: isSelected ? 'difference' : 'normal', cursor: 'pointer',
                       pointerEvents: isSelected ? 'auto' : 'none',
                     }}
                   >

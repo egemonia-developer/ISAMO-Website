@@ -57,18 +57,21 @@ const THROTTLE_MS: Record<UiSoundName, number> = {
 const buffers  = new Map<UiSoundName, AudioBuffer>();
 const lastPlay = new Map<UiSoundName, number>();
 let   muted    = false;
-let   loaded   = false;
 
-/** Pre-load + decode every sound once. Must be called after a user gesture. */
-export function preloadUiSounds() {
-  if (loaded) return;
-  loaded = true;
-  // Restore persisted volume
-  const saved = localStorage.getItem('isamo-ui-volume');
-  if (saved !== null) setMasterGain(parseFloat(saved));
-  for (const key of Object.keys(SRC) as UiSoundName[]) {
-    loadBuffer(SRC[key]).then(buf => buffers.set(key, buf)).catch(() => {});
+let loadPromise: Promise<void> | null = null;
+
+/** Pre-load + decode every sound once. Resolves once every sound is ready (or failed). */
+export function preloadUiSounds(): Promise<void> {
+  if (!loadPromise) {
+    // Restore persisted volume
+    const saved = localStorage.getItem('isamo-ui-volume');
+    if (saved !== null) setMasterGain(parseFloat(saved));
+    loadPromise = Promise.all(
+      (Object.keys(SRC) as UiSoundName[]).map(key =>
+        loadBuffer(SRC[key]).then(buf => buffers.set(key, buf)).catch(() => {}))
+    ).then(() => {});
   }
+  return loadPromise;
 }
 
 /** Set the master UI volume (0–1) and persist it. */

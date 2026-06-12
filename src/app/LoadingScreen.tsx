@@ -1,15 +1,44 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { playKeyboardSound, preloadKeyboardSounds } from './audio/keyboardSounds';
+import { preloadUiSounds } from './audio/uiSounds';
+import { INITIAL_BOARD_VIDEOS } from './Home';
 
 interface Props {
   onComplete: () => void;
 }
 
 const LOAD_MIN_MS    = 2500;
+const MAX_WAIT_MS    = 9000; // hard cap so a slow connection never blocks the UI forever
 const BANG_HOLD_MS   = 1150; // how long "(!)" stays on screen before "(ISAMO !)"
 const LOADED_HOLD_MS = 1300; // how long "(ISAMO !)" stays before completing
 const CLOSE_MS       =  160; // brackets snap shut before the "!" pops in and reopens them
+
+// ── Asset preloading — the dot animation loops (repeat: Infinity) until both
+// LOAD_MIN_MS has elapsed AND every asset below is ready (or MAX_WAIT_MS hits). ──
+function preloadVideoMetadata(src: string): Promise<void> {
+  return new Promise(resolve => {
+    const v    = document.createElement('video');
+    v.preload  = 'metadata';
+    v.muted    = true;
+    v.src      = src;
+    const done = () => resolve();
+    v.addEventListener('loadedmetadata', done, { once: true });
+    v.addEventListener('error',          done, { once: true });
+  });
+}
+
+function preloadAssets(): Promise<void> {
+  const tasks: Promise<unknown>[] = [
+    preloadKeyboardSounds(),
+    preloadUiSounds(),
+    ...INITIAL_BOARD_VIDEOS.map(v => preloadVideoMetadata(v.src)),
+  ];
+  if (typeof document !== 'undefined' && document.fonts?.ready) tasks.push(document.fonts.ready);
+
+  const timeout = new Promise<void>(resolve => setTimeout(resolve, MAX_WAIT_MS));
+  return Promise.race([Promise.all(tasks).then(() => {}), timeout]);
+}
 
 // ── Wordmark, set in the UI font (same glyphs as the persistent "(ISAMO !)" logo) ──
 // All widths below are derived from the font's own advance widths (per 1000 units)
@@ -54,9 +83,8 @@ export function LoadingScreen({ onComplete }: Props) {
   const onCompleteRef = useRef(onComplete);
   useEffect(() => { onCompleteRef.current = onComplete; });
 
-  useEffect(() => { preloadKeyboardSounds(); }, []);
-
   useEffect(() => {
+    let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     // One random keyboard sound per dot at its appearance time
@@ -65,11 +93,20 @@ export function LoadingScreen({ onComplete }: Props) {
       timers.push(setTimeout(() => playKeyboardSound(), ms));
     });
 
-    timers.push(setTimeout(() => {
+    // The dots keep looping (repeat: Infinity) until the page has actually
+    // finished loading its media — not just after a fixed delay.
+    const minDelay = new Promise<void>(resolve => {
+      timers.push(setTimeout(resolve, LOAD_MIN_MS));
+    });
+
+    Promise.all([minDelay, preloadAssets()]).then(() => {
+      if (cancelled) return;
+
       // Dots fade out and the brackets snap shut first…
       setPhase('closed');
 
       timers.push(setTimeout(() => {
+        if (cancelled) return;
         // …then reopen as the "!" pops in.
         setPhase('bang');
         new Audio('/sounds/ui-loading_end.mp3').play().catch(() => {});
@@ -80,9 +117,9 @@ export function LoadingScreen({ onComplete }: Props) {
         timers.push(setTimeout(() => setPhase('full'), BANG_HOLD_MS));
         timers.push(setTimeout(() => onCompleteRef.current?.(), BANG_HOLD_MS + LOADED_HOLD_MS));
       }, CLOSE_MS));
-    }, LOAD_MIN_MS));
+    });
 
-    return () => timers.forEach(clearTimeout);
+    return () => { cancelled = true; timers.forEach(clearTimeout); };
   }, []);
 
   const slotWidth = phase === 'loading' ? DOTS_W
