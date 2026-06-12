@@ -20,11 +20,11 @@ interface VideoTileProps {
 }
 
 /**
- * Shared `<video>` tile: loads immediately (the loading screen prefetches every
- * tile's source so playback starts instantly). On a slow connection (or
- * data-saver mode) it loads the heavily compressed `/refs-lq/` variant instead.
- * If the source fails to load — on any connection — the tile falls back to a
- * plain accent-coloured square instead of staying blank.
+ * Shared `<video>` tile: loads its `src` immediately (no lazy/IntersectionObserver
+ * gating). On a slow connection (or data-saver mode) it loads the heavily
+ * compressed `/refs-lq/` variant instead. If the source fails to load — on any
+ * connection — the tile falls back to a plain accent-coloured square instead of
+ * staying blank.
  */
 export function VideoTile({ src, style, videoRef }: VideoTileProps) {
   const [failed, setFailed] = useState(false);

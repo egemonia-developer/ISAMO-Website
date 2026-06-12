@@ -675,10 +675,9 @@ function TagLabel({ label, onClick }: {
 }
 
 // ── Moodboard video item — plays only when active; muted prop toggleable ─────
-// All 24 items load their <video src> immediately; the loading screen prefetches
-// every source up front so this is served from cache. On a slow connection,
-// VideoTile loads the compressed /refs-lq/ variant instead and falls back to an
-// accent square on error.
+// All 24 items load their <video src> immediately (no lazy loading). On a slow
+// connection, VideoTile loads the compressed /refs-lq/ variant instead and
+// falls back to an accent square on error.
 function MoodboardVideoItem({ src, isActive, isMuted, fullView = false }: { src: string; isActive: boolean; isMuted: boolean; fullView?: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
 
@@ -2710,7 +2709,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
 
     // ── Load new sound ────────────────────────────────────────────────────────
     audio.src          = soundSrc(currentSoundId);
-    audio.preload      = 'auto'; // fully buffer for instant playback (the loading screen also prefetches every library sound)
+    audio.preload      = 'auto'; // fully buffer the selected track for instant playback
     audio.loop         = false;
     audio.playbackRate = 1;
     audio.preservesPitch = false;   // tape mode: W/A shift pitch + speed together
