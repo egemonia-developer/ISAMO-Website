@@ -185,37 +185,32 @@ const MACLOW_SOUNDS   = makeSounds('A.MC', 9, n => `Maclow-${n}`);
 const RUSOWSKY_SOUNDS = makeSounds('A.RS', 9, n => `Rusowsky-${n}`);
 const SAMPHA_SOUNDS   = makeSounds('A.SM', 9, n => `Sampha-${n}`);
 
+// ── Board / splash gallery clips — title / designer / country left blank to fill ──
 export const INITIAL_BOARD_VIDEOS = [
-  { id: '1', src: '/refs/jun1-1.mp4',      label: 'Studio Yukiko',      author: 'Studio Yukiko',      country: 'Germany',     year: 2024, tags: ['M', 'B.A01'] },
-  { id: '2', src: '/refs/jun9-1.mp4',      label: 'Everyday Practice',  author: 'Everyday Practice',  country: 'South Korea', year: 2023, tags: ['D', 'M.SP01'] },
-  { id: '3', src: '/refs/video-1.mp4',     label: 'Erich Brechbühl',    author: 'Erich Brechbühl',    country: 'Switzerland', year: 2022, tags: ['M', 'B.A01'] },
-  { id: '4', src: '/refs/p8-21.mp4',       label: 'Studio Feixen',      author: 'Studio Feixen',      country: 'Switzerland', year: 2025, tags: ['D', 'E.GL01'] },
-  { id: '5', src: '/refs/p132_a-75.mp4',   label: 'Fons Hickmann M23',  author: 'Fons Hickmann M23',  country: 'Germany',     year: 2023, tags: ['M', 'E.ST01'] },
-  { id: '6', src: '/refs/p204-247.mp4',    label: 'Studio Thonik',      author: 'Studio Thonik',      country: 'Netherlands', year: 2024, tags: ['D', 'C.CT02'] },
-  { id: '7', src: '/refs/video-2.mp4',     label: 'Matteo Campostrini', author: 'Matteo Campostrini', country: 'Italy',       year: 2025, tags: ['M', 'M.SP03'] },
-  { id: '8', src: '/refs/video-3.mp4',     label: 'Neue Gestaltung',    author: 'Neue Gestaltung',    country: 'Germany',     year: 2023, tags: ['D', 'B.A03'] },
-  // ── Imported from themovingposter.com (folder: board-videos-no-sound) ──
-  // Reliable site data: project title + upload year. designer/country NOT machine-extractable (JS-rendered) → left blank for the user to fill.
-  { id: '9',  src: '/refs/13-1.mp4',        label: 'Bar Kulma',                  author: '', country: '', year: 2023, tags: ['B.A01']  },
-  { id: '10', src: '/refs/p129-72.mp4',     label: 'Transformation Chinese Art', author: '', country: '', year: 2022, tags: ['M.SP01'] },
-  { id: '11', src: '/refs/p146_c-100.mp4',  label: 'Sundance Film Festival',     author: '', country: '', year: 2022, tags: ['E.GL01'] },
-  { id: '12', src: '/refs/p203-245.mp4',    label: 'Oi Phorie Aterlier Oi',      author: '', country: '', year: 2022, tags: ['E.ST01'] },
-  { id: '13', src: '/refs/p4-16.mp4',       label: 'Sommernachtstraum',          author: '', country: '', year: 2021, tags: ['C.CT02'] },
-  { id: '14', src: '/refs/p55-363.mp4',     label: 'Tokyo TDC',                  author: '', country: '', year: 2021, tags: ['B.A03']  },
-  { id: '15', src: '/refs/p61-371.mp4',     label: 'Sudoku',                     author: '', country: '', year: 2021, tags: ['M.SP03'] },
-  { id: '16', src: '/refs/p83-400.mp4',     label: 'Weltforum',                  author: '', country: '', year: 2021, tags: ['E.GL01'] },
-  { id: '17', src: '/refs/poster_ex3-1.mp4', label: 'Olan!',                     author: '', country: '', year: 2023, tags: ['E.ST01'] },
-  { id: '18', src: '/refs/wf22_2-1.mp4',    label: 'Weltformat22 Gianluca',      author: '', country: '', year: 2023, tags: ['C.CT02'] },
-  // ── User-added clips — title / designer / country / year left blank to fill ──
-  { id: '19', src: '/refs/p22_4-31.mp4',    label: '', author: '', country: '', year: 2024, tags: ['B.A01']  },
-  { id: '20', src: '/refs/p30-332.mp4',     label: '', author: '', country: '', year: 2024, tags: ['M.SP01'] },
-  { id: '21', src: '/refs/p101-19.mp4',     label: '', author: '', country: '', year: 2024, tags: ['E.GL01'] },
-  { id: '22', src: '/refs/p109-35.mp4',     label: '', author: '', country: '', year: 2024, tags: ['E.ST01'] },
-  { id: '23', src: '/refs/p161-138.mp4',    label: '', author: '', country: '', year: 2024, tags: ['C.CT02'] },
-  { id: '24', src: '/refs/p180_a-194.mp4',  label: '', author: '', country: '', year: 2024, tags: ['B.A03']  },
-  { id: '25', src: '/refs/p184-200.mp4',    label: '', author: '', country: '', year: 2024, tags: ['M.SP03'] },
-  { id: '26', src: '/refs/p195-230.mp4',    label: '', author: '', country: '', year: 2024, tags: ['B.A02']  },
-  { id: '27', src: '/refs/p217_a-273.mp4',  label: '', author: '', country: '', year: 2024, tags: ['E.GL02'] },
+  { id: '1',  src: '/refs/13-1.mp4',                       label: '', author: '', country: '', year: 2025, tags: ['B.A01']  },
+  { id: '2',  src: '/refs/alessandro-vogel-01-sound.mp4',  label: '', author: '', country: '', year: 2025, tags: ['B.A02'] },
+  { id: '3',  src: '/refs/alessandro-vogel-01.mp4',        label: '', author: '', country: '', year: 2025, tags: ['B.A03'] },
+  { id: '4',  src: '/refs/alessandro-vogel-02.mp4',        label: '', author: '', country: '', year: 2025, tags: ['B.A04'] },
+  { id: '5',  src: '/refs/alessandro-vogel-03.mp4',        label: '', author: '', country: '', year: 2025, tags: ['B.A05'] },
+  { id: '6',  src: '/refs/alessandro-vogel-04.mp4',        label: '', author: '', country: '', year: 2025, tags: ['B.A06'] },
+  { id: '7',  src: '/refs/diplomes-1.mp4',                 label: '', author: '', country: '', year: 2025, tags: ['B.A07'] },
+  { id: '8',  src: '/refs/diplomes-111.mp4',               label: '', author: '', country: '', year: 2025, tags: ['B.V01'] },
+  { id: '9',  src: '/refs/diplomes-1_1.mp4',               label: '', author: '', country: '', year: 2025, tags: ['B.V02'] },
+  { id: '10', src: '/refs/diplomes-1_2.mp4',               label: '', author: '', country: '', year: 2025, tags: ['B.V03'] },
+  { id: '11', src: '/refs/diplomes-1_3.mp4',               label: '', author: '', country: '', year: 2025, tags: ['C.CT01'] },
+  { id: '12', src: '/refs/diplomes-1_4.mp4',               label: '', author: '', country: '', year: 2025, tags: ['C.CT02'] },
+  { id: '13', src: '/refs/diplomes-1_5.mp4',               label: '', author: '', country: '', year: 2025, tags: ['C.CT03'] },
+  { id: '14', src: '/refs/diplomes-1_6.mp4',               label: '', author: '', country: '', year: 2025, tags: ['C.ZM01'] },
+  { id: '15', src: '/refs/diplomes-1_7.mp4',               label: '', author: '', country: '', year: 2025, tags: ['C.ZM02'] },
+  { id: '16', src: '/refs/diplomes-1_8.mp4',               label: '', author: '', country: '', year: 2025, tags: ['E.GL01'] },
+  { id: '17', src: '/refs/ecal-1.mp4',                     label: '', author: '', country: '', year: 2025, tags: ['E.GL02'] },
+  { id: '18', src: '/refs/ecal-2.mp4',                     label: '', author: '', country: '', year: 2025, tags: ['E.GL03'] },
+  { id: '19', src: '/refs/raffinerie.mp4',                 label: '', author: '', country: '', year: 2025, tags: ['E.GL04'] },
+  { id: '20', src: '/refs/video-1.mp4',                    label: '', author: '', country: '', year: 2025, tags: ['E.GL05'] },
+  { id: '21', src: '/refs/video-2.mp4',                    label: '', author: '', country: '', year: 2025, tags: ['E.ST01'] },
+  { id: '22', src: '/refs/video-3.mp4',                    label: '', author: '', country: '', year: 2025, tags: ['E.ST02'] },
+  { id: '23', src: '/refs/wf22_2-1.mp4',                   label: '', author: '', country: '', year: 2025, tags: ['M.R01']  },
+  { id: '24', src: '/refs/zhdk.mp4',                       label: '', author: '', country: '', year: 2025, tags: ['M.R02']  },
 ];
 
 // Board search match — shared by render filter + keyboard navigation
@@ -302,20 +297,20 @@ const CATEGORIES: Category[] = [
     preview: '/previews/library.mp4', previewFit: 'cover',
     xItems: [
       { label: 'Movement',    iconName: 'movement',    preview: '/previews/movement-final.mp4', previewFit: 'cover', zItems: [
-        { label: 'Rotation', wItems: makeSounds('M.R',  1, n => `Rotation-${n}`),   preview: '/previews/rotation-general.mp4', previewFit: 'cover' },
-        { label: 'Space',    wItems: makeSounds('M.SP', 3, n => `Space-${n}`), preview: '/previews/space.mp4', previewFit: 'cover' },
+        { label: 'Rotation', wItems: makeSounds('M.R',  5, n => `Rotation-${n}`),   preview: '/previews/rotation-general.mp4', previewFit: 'cover' },
+        { label: 'Space',    wItems: makeSounds('M.SP', 5, n => `Space-${n}`), preview: '/previews/space.mp4', previewFit: 'cover' },
       ]},
       { label: 'Camera',      iconName: 'camera',      preview: '/previews/camera.mp4', previewFit: 'cover', zItems: [
-        { label: 'Zoom',  wItems: makeSounds('C.ZM', 1, n => `Zoom-${n}`), preview: '/previews/zoom-mod.mp4', previewFit: 'cover' },
+        { label: 'Zoom',  wItems: makeSounds('C.ZM', 2, n => `Zoom-${n}`), preview: '/previews/zoom-mod.mp4', previewFit: 'cover' },
         { label: 'Depth', wItems: [], preview: '/previews/focus-mod.mp4', previewFit: 'cover' },
-        { label: 'Cuts',  wItems: makeSounds('C.CT', 2, n => `Cuts-${n}`), preview: '/previews/cuts-mod.mp4', previewFit: 'cover' },
+        { label: 'Cuts',  wItems: makeSounds('C.CT', 3, n => `Cuts-${n}`), preview: '/previews/cuts-mod.mp4', previewFit: 'cover' },
       ]},
       { label: 'Effects',     iconName: 'effects',     preview: '/previews/effects-general.mp4', previewFit: 'cover', zItems: [
-        { label: 'Glitch', wItems: makeSounds('E.GL', 3, n => `Glitch-${n}`), preview: '/previews/glitch.mp4', previewFit: 'cover' },
-        { label: 'Strobe', wItems: makeSounds('E.ST', 1, n => `Strobe-${n}`), preview: '/previews/strobe.mp4', previewFit: 'cover' },
+        { label: 'Glitch', wItems: makeSounds('E.GL', 5, n => `Glitch-${n}`), preview: '/previews/glitch.mp4', previewFit: 'cover' },
+        { label: 'Strobe', wItems: makeSounds('E.ST', 2, n => `Strobe-${n}`), preview: '/previews/strobe.mp4', previewFit: 'cover' },
       ]},
       { label: 'Backing',     iconName: 'backing', preview: '/previews/backing-mod.mp4', previewFit: 'cover', zItems: [
-        { label: 'Ambient', wItems: makeSounds('B.A', 5, n => `Ambient-${n}`), preview: '/previews/ambient-mod.mp4', previewFit: 'cover' },
+        { label: 'Ambient', wItems: makeSounds('B.A', 7, n => `Ambient-${n}`), preview: '/previews/ambient-mod.mp4', previewFit: 'cover' },
         { label: 'Voices',  wItems: makeSounds('B.V', 3, n => `Voices-${n}`), preview: '/previews/voices-mod.mp4', previewFit: 'cover' },
       ]},
     ],
@@ -3887,12 +3882,12 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
               fontSize: FS_SMALL, fontFamily: FONT, color: 'var(--ui-fg)', letterSpacing: '0.04em', lineHeight: 1.3,
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', gap: 6 }}>
               {S.pressPrefix}
               <Icon name="key-enter" size={FS_SMALL} color="var(--ui-complement)" style={{ alignSelf: 'baseline' }} />
               {S.fxEnterHint}
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', gap: 6 }}>
               {S.pressPrefix}
               <Icon name="esc" size={FS_SMALL} color="var(--ui-complement)" style={{ alignSelf: 'baseline' }} />
               {S.fxEscHint}

@@ -7,9 +7,30 @@ interface Props {
 }
 
 const LOAD_MIN_MS    = 2500;
-const LOADED_HOLD_MS =  900;
+const BANG_HOLD_MS   = 1150; // how long "(!)" stays on screen before "(ISAMO !)"
+const LOADED_HOLD_MS = 1300; // how long "(ISAMO !)" stays before completing
+const CLOSE_MS       =  160; // brackets snap shut before the "!" pops in and reopens them
 
-const DOT_XS = [270.8, 540.86, 810.92] as const;
+// ── Wordmark, set in the UI font (same glyphs as the persistent "(ISAMO !)" logo) ──
+// All widths below are derived from the font's own advance widths (per 1000 units)
+// at FONT_SIZE, so the "slot" between the brackets sizes itself exactly to its
+// content — no DOM measurement needed.
+const FONT_SIZE = 100; // px — overall size of the loading wordmark
+const adv = (units: number) => units / 1000 * FONT_SIZE;
+
+const BRACKET_ADV = adv(231); // '(' / ')' advance — echo step
+const DOT_GAP     = 14;       // px gap between loading dots
+const DOTS_W      = adv(271) * 3 + DOT_GAP * 2;               // "..." slot width
+const BANG_W      = adv(488);                                  // "!" slot width
+const FULL_W      = adv(182 + 490 + 529 + 729 + 646 + 200) + BANG_W; // "ISAMO !" slot width
+
+const POP_SPRING   = { type: 'spring' as const, stiffness: 700, damping: 12, mass: 0.5 };
+const CLOSE_TWEEN  = { duration: CLOSE_MS / 1000, ease: 'easeIn' as const };
+const REVEAL_TWEEN = { duration: 0.3, ease: 'easeOut' as const };
+
+const N_ECHO = 5;
+// Peak opacity, closest → farthest
+const ECHO_OPACITIES = [1, 0.72, 0.46, 0.24, 0.09];
 
 const dotVariants = {
   idle: { opacity: 0 },
@@ -24,55 +45,10 @@ const dotVariants = {
   }),
 };
 
-// ── Bracket geometry (from bracket.svg, viewBox 0 0 270.8 1079.88) ─────────────
-const VB_W      = 1216.75; // loading SVG viewBox width
-const BRACKET_W = 270.8;   // width of one half-bracket
-
-// [ shape — long vertical bar on the LEFT (outer when placed left of centre)
-function BracketLeft() {
-  return (
-    <>
-      <rect fill="currentColor" x="0"     y="134.85" width="134.3" height="810.09" />
-      <rect fill="currentColor" x="134.3" y="0"      width="136.5" height="134.85" />
-      <rect fill="currentColor" x="134.3" y="945.03" width="136.5" height="134.85" />
-    </>
-  );
-}
-
-// ] shape — long vertical bar on the RIGHT (outer when placed right of centre)
-// Mirror of BracketLeft about x = BRACKET_W / 2:
-//   x=0,w=134.3  → x=136.5,w=134.3  (bar moves to right)
-//   x=134.3,w=136.5 → x=0,w=136.5   (corners move to left)
-function BracketRight() {
-  return (
-    <>
-      <rect fill="currentColor" x="136.5" y="134.85" width="134.3" height="810.09" />
-      <rect fill="currentColor" x="0"     y="0"      width="136.5" height="134.85" />
-      <rect fill="currentColor" x="0"     y="945.03" width="136.5" height="134.85" />
-    </>
-  );
-}
-
-// Full frame used for the permanent centre bracket
-function BracketFrame() {
-  return (
-    <g>
-      {/* Left side */}
-      <BracketLeft />
-      {/* Right side — place ] flush against the right edge */}
-      <g transform={`translate(${VB_W - BRACKET_W}, 0)`}>
-        <BracketRight />
-      </g>
-    </g>
-  );
-}
-
-const N_ECHO = 5;
-// Peak opacity, closest → farthest
-const ECHO_OPACITIES = [1, 0.72, 0.46, 0.24, 0.09];
+type Phase = 'loading' | 'closed' | 'bang' | 'full';
 
 export function LoadingScreen({ onComplete }: Props) {
-  const [phase,    setPhase]    = useState<'loading' | 'loaded'>('loading');
+  const [phase,    setPhase]    = useState<Phase>('loading');
   const [showEcho, setShowEcho] = useState(false);
 
   const onCompleteRef = useRef(onComplete);
@@ -83,24 +59,40 @@ export function LoadingScreen({ onComplete }: Props) {
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    // ── Dot sounds — one random keyboard sound per dot at its appearance time ──
-    // Dot i becomes visible at keyframe time (i * 0.16 + 0.02) within the 2.5 s cycle
-    DOT_XS.forEach((_, i) => {
+    // One random keyboard sound per dot at its appearance time
+    [0, 1, 2].forEach((i) => {
       const ms = Math.round((i * 0.16 + 0.02) * LOAD_MIN_MS); // 50 ms, 450 ms, 850 ms
       timers.push(setTimeout(() => playKeyboardSound(), ms));
     });
 
     timers.push(setTimeout(() => {
-      setPhase('loaded');
-      new Audio('/sounds/ui-loading_end.mp3').play().catch(() => {});
-      // Slight delay so echo fires as the ! reaches its peak
-      timers.push(setTimeout(() => setShowEcho(true), 60));
-      timers.push(setTimeout(() => setShowEcho(false), 60 + 800));
-      timers.push(setTimeout(() => onCompleteRef.current?.(), 60 + 800 + LOADED_HOLD_MS));
+      // Dots fade out and the brackets snap shut first…
+      setPhase('closed');
+
+      timers.push(setTimeout(() => {
+        // …then reopen as the "!" pops in.
+        setPhase('bang');
+        new Audio('/sounds/ui-loading_end.mp3').play().catch(() => {});
+        // Slight delay so echo fires as the ! reaches its peak
+        timers.push(setTimeout(() => setShowEcho(true), 60));
+        timers.push(setTimeout(() => setShowEcho(false), 60 + 800));
+        // After "(!)" has held for a moment, reveal the full "(ISAMO !)" wordmark
+        timers.push(setTimeout(() => setPhase('full'), BANG_HOLD_MS));
+        timers.push(setTimeout(() => onCompleteRef.current?.(), BANG_HOLD_MS + LOADED_HOLD_MS));
+      }, CLOSE_MS));
     }, LOAD_MIN_MS));
 
     return () => timers.forEach(clearTimeout);
   }, []);
+
+  const slotWidth = phase === 'loading' ? DOTS_W
+    : phase === 'closed' ? 0
+    : phase === 'bang'   ? BANG_W
+    : FULL_W;
+
+  const slotTransition = phase === 'closed' ? CLOSE_TWEEN
+    : phase === 'bang'  ? POP_SPRING
+    : REVEAL_TWEEN;
 
   return (
     <motion.div
@@ -119,94 +111,96 @@ export function LoadingScreen({ onComplete }: Props) {
         overflow:       'hidden',
       }}
     >
-      <svg
-        viewBox="0 0 1216.75 1080.25"
-        style={{ width: 'auto', height: 76, overflow: 'visible',
-                 // Accent while loading; flips to the complement when the "!" appears
-                 color: phase === 'loaded' ? 'var(--ui-complement)' : 'var(--ui-fg)',
-                 transition: 'color 0.25s ease' }}
-        xmlns="http://www.w3.org/2000/svg"
+      <div
+        style={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'baseline',
+          fontFamily: 'var(--font-main)',
+          fontSize: FONT_SIZE,
+          lineHeight: 1,
+          whiteSpace: 'nowrap',
+          userSelect: 'none',
+          // Accent while loading; flips to the complement once the "!" appears
+          color: (phase === 'bang' || phase === 'full') ? 'var(--ui-complement)' : 'var(--ui-fg)',
+          transition: 'color 0.25s ease',
+        }}
       >
-        {/* Centre bracket — always visible */}
-        <BracketFrame />
+        {/* ── Echo copies — '(' radiates left, ')' radiates right ── */}
+        {showEcho && Array.from({ length: N_ECHO }, (_, i) => (
+          <motion.span
+            key={`echo-L-${i}`}
+            style={{ position: 'absolute', top: 0, right: `calc(100% + ${i * BRACKET_ADV}px)` }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, ECHO_OPACITIES[i], 0] }}
+            transition={{ duration: 0.42, delay: i * 0.038, ease: 'easeInOut', times: [0, 0.25, 1] }}
+          >(</motion.span>
+        ))}
+        {showEcho && Array.from({ length: N_ECHO }, (_, i) => (
+          <motion.span
+            key={`echo-R-${i}`}
+            style={{ position: 'absolute', top: 0, left: `calc(100% + ${i * BRACKET_ADV}px)` }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, ECHO_OPACITIES[i], 0] }}
+            transition={{ duration: 0.42, delay: i * 0.038, ease: 'easeInOut', times: [0, 0.25, 1] }}
+          >)</motion.span>
+        ))}
 
-        {/* ── Echo copies ────────────────────────────────────────────
-            Each copy is a SINGLE half-bracket so the long bar
-            always faces outward:
-              Left  copies → [ (BracketLeft)  at x = -(i+1)*BRACKET_W
-              Right copies → ] (BracketRight) at x =  VB_W + i*BRACKET_W
-            Stagger: inner first (i=0), outer last.            ── */}
-        {showEcho && (
-          <>
-            {Array.from({ length: N_ECHO }, (_, i) => (
-              <motion.g
-                key={`echo-L-${i}`}
-                transform={`translate(${-(i + 1) * BRACKET_W}, 0)`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, ECHO_OPACITIES[i], 0] }}
-                transition={{ duration: 0.42, delay: i * 0.038, ease: 'easeInOut', times: [0, 0.25, 1] }}
+        <span>(</span>
+
+        {/* ── Middle slot — sized exactly to its content; its width animation
+               IS the "brackets close, then reopen" effect (no transforms needed
+               on the brackets themselves). ── */}
+        <motion.div
+          animate={{ width: slotWidth }}
+          transition={slotTransition}
+          style={{ overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'baseline' }}
+        >
+          {/* Loading: three animated dots — fade out as the slot collapses */}
+          <AnimatePresence>
+            {phase === 'loading' && (
+              <motion.span
+                key="dots"
+                style={{ display: 'inline-flex', gap: DOT_GAP }}
+                exit={{ opacity: 0, transition: { duration: 0.12, ease: 'easeOut' } }}
               >
-                <BracketLeft />
-              </motion.g>
-            ))}
-            {Array.from({ length: N_ECHO }, (_, i) => (
-              <motion.g
-                key={`echo-R-${i}`}
-                transform={`translate(${VB_W + i * BRACKET_W}, 0)`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, ECHO_OPACITIES[i], 0] }}
-                transition={{ duration: 0.42, delay: i * 0.038, ease: 'easeInOut', times: [0, 0.25, 1] }}
-              >
-                <BracketRight />
-              </motion.g>
-            ))}
-          </>
-        )}
+                {[0, 1, 2].map(i => (
+                  <motion.span key={i} custom={i} variants={dotVariants} initial="idle" animate="animating">
+                    .
+                  </motion.span>
+                ))}
+              </motion.span>
+            )}
+          </AnimatePresence>
 
-        {/* ── Loading: three animated dots ───────────────────────── */}
-        <AnimatePresence>
-          {phase === 'loading' && (
-            <motion.g
-              key="dots"
-              exit={{ opacity: 0, transition: { duration: 0 } }}
-            >
-              {DOT_XS.map((x, i) => (
-                <motion.rect
-                  key={x}
-                  fill="currentColor"
-                  x={x} y={472.61} width={135.03} height={135.03}
-                  custom={i}
-                  variants={dotVariants}
-                  initial="idle"
-                  animate="animating"
-                />
-              ))}
-            </motion.g>
-          )}
-        </AnimatePresence>
-
-        {/* ── Loaded: exclamation mark — fast spring, impactful ─── */}
-        <AnimatePresence>
-          {phase === 'loaded' && (
-            <motion.g
-              key="loaded"
+          {/* "!" pops in as the slot reopens; "ISAMO " fades in before it once revealed */}
+          {(phase === 'bang' || phase === 'full') && (
+            <motion.span
+              style={{ display: 'inline-flex', transformOrigin: 'center' }}
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
-              style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-              transition={{
-                type:      'spring',
-                stiffness: 700,
-                damping:   12,
-                mass:      0.5,
-                opacity:   { duration: 0.08, ease: 'easeOut' },
-              }}
+              transition={{ ...POP_SPRING, opacity: { duration: 0.08, ease: 'easeOut' } }}
             >
-              <polygon fill="currentColor" points="878.44 67.5 743.41 67.5 743.41 .04 473.34 .04 473.34 67.5 338.31 67.5 338.31 270.03 405.83 270.03 405.83 472.56 473.34 472.56 473.34 675.08 540.86 675.08 540.86 810.1 675.88 810.1 675.88 675.08 743.41 675.08 743.41 472.56 810.92 472.56 810.92 270.03 878.44 270.03 878.44 67.5" />
-              <polygon fill="currentColor" points="670.61 877.64 535.58 877.64 535.58 945.15 468.06 945.15 468.06 1012.66 535.58 1012.66 535.58 1080.13 670.61 1080.13 670.61 1012.66 738.13 1012.66 738.13 945.15 670.61 945.15 670.61 877.64" />
-            </motion.g>
+              <AnimatePresence>
+                {phase === 'full' && (
+                  <motion.span
+                    key="isamo"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    style={{ display: 'inline-block' }}
+                  >
+                    ISAMO&nbsp;
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              !
+            </motion.span>
           )}
-        </AnimatePresence>
-      </svg>
+        </motion.div>
+
+        <span>)</span>
+      </div>
     </motion.div>
   );
 }
