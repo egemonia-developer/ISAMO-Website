@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { playKeyboardSound, preloadKeyboardSounds } from './audio/keyboardSounds';
 import { preloadUiSounds } from './audio/uiSounds';
-import { INITIAL_BOARD_VIDEOS } from './Home';
 
 interface Props {
   onComplete: () => void;
@@ -15,24 +14,15 @@ const LOADED_HOLD_MS = 1300; // how long "(ISAMO !)" stays before completing
 const CLOSE_MS       =  160; // brackets snap shut before the "!" pops in and reopens them
 
 // ── Asset preloading — the dot animation loops (repeat: Infinity) until both
-// LOAD_MIN_MS has elapsed AND every asset below is ready (or MAX_WAIT_MS hits). ──
-function preloadVideoMetadata(src: string): Promise<void> {
-  return new Promise(resolve => {
-    const v    = document.createElement('video');
-    v.preload  = 'metadata';
-    v.muted    = true;
-    v.src      = src;
-    const done = () => resolve();
-    v.addEventListener('loadedmetadata', done, { once: true });
-    v.addEventListener('error',          done, { once: true });
-  });
-}
-
+// LOAD_MIN_MS has elapsed AND every asset below is ready (or MAX_WAIT_MS hits).
+// Board/gallery videos are NOT included: each <video preload="metadata"> already
+// fetches its own header on mount, and with 24 of them (242MB total) preloading
+// them all here too just doubles those requests and stalls the loading screen
+// on slow connections. ──
 function preloadAssets(): Promise<void> {
   const tasks: Promise<unknown>[] = [
     preloadKeyboardSounds(),
     preloadUiSounds(),
-    ...INITIAL_BOARD_VIDEOS.map(v => preloadVideoMetadata(v.src)),
   ];
   if (typeof document !== 'undefined' && document.fonts?.ready) tasks.push(document.fonts.ready);
 
@@ -87,11 +77,19 @@ export function LoadingScreen({ onComplete }: Props) {
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    // One random keyboard sound per dot at its appearance time
-    [0, 1, 2].forEach((i) => {
-      const ms = Math.round((i * 0.16 + 0.02) * LOAD_MIN_MS); // 50 ms, 450 ms, 850 ms
-      timers.push(setTimeout(() => playKeyboardSound(), ms));
-    });
+    // One random keyboard sound per dot at its appearance time, repeating for
+    // every loop of the dot animation — on a slow connection the loading
+    // phase can far outlast a single 2.5s cycle, and the dots keep looping
+    // (repeat: Infinity) until assets are actually ready.
+    const scheduleDotSounds = () => {
+      [0, 1, 2].forEach((i) => {
+        const ms = Math.round((i * 0.16 + 0.02) * LOAD_MIN_MS); // 50 ms, 450 ms, 850 ms
+        timers.push(setTimeout(() => { if (!cancelled) playKeyboardSound(); }, ms));
+      });
+    };
+    scheduleDotSounds();
+    const dotSoundLoop = setInterval(scheduleDotSounds, LOAD_MIN_MS);
+    timers.push(dotSoundLoop as unknown as ReturnType<typeof setTimeout>);
 
     // The dots keep looping (repeat: Infinity) until the page has actually
     // finished loading its media — not just after a fixed delay.
@@ -101,6 +99,7 @@ export function LoadingScreen({ onComplete }: Props) {
 
     Promise.all([minDelay, preloadAssets()]).then(() => {
       if (cancelled) return;
+      clearInterval(dotSoundLoop);
 
       // Dots fade out and the brackets snap shut first…
       setPhase('closed');
