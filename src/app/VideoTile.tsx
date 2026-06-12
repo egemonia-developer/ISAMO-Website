@@ -6,6 +6,13 @@ export function toLowQuality(src: string): string {
   return src.replace('/refs/', '/refs-lq/');
 }
 
+/** Safari renders `preload="metadata"` videos as a blank frame until a frame is
+ *  actually decoded. Nudging `currentTime` forward slightly off the target forces
+ *  a decode so the poster frame appears without requiring playback. */
+export function nudgeVideoFrame(video: HTMLVideoElement, target = 0) {
+  video.currentTime = target === 0 ? 0.01 : target;
+}
+
 interface VideoTileProps {
   src: string;
   style?: CSSProperties;
@@ -51,10 +58,7 @@ export function VideoTile({ src, style, lazy = false, videoRef }: VideoTileProps
       src={load ? resolvedSrc : undefined}
       muted loop playsInline
       preload={load ? 'metadata' : 'none'}
-      // Safari renders preload="metadata" videos as a blank frame until a seek
-      // actually decodes a frame — nudge it once metadata is in so the poster
-      // frame appears without requiring playback.
-      onLoadedMetadata={e => { const v = e.currentTarget; if (v.currentTime === 0) v.currentTime = 0.01; }}
+      onLoadedMetadata={e => nudgeVideoFrame(e.currentTarget)}
       onError={() => setFailed(true)}
       style={style}
     />

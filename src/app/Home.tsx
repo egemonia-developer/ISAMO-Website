@@ -12,7 +12,7 @@ import { useTypewriter } from './hooks/useTypewriter';
 import type { InputMode } from './App';
 import { motion, AnimatePresence, useIsPresent } from 'motion/react';
 import { Icon, type IconName } from './icons';
-import { VideoTile } from './VideoTile';
+import { VideoTile, nudgeVideoFrame } from './VideoTile';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 type WItem    = { id: string; label: string; title: string; duration: string };
@@ -4260,6 +4260,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                     key={currentZPreviewSrc}
                     src={currentZPreviewSrc}
                     autoPlay loop muted playsInline
+                    onLoadedMetadata={e => nudgeVideoFrame(e.currentTarget)}
                     style={{
                       position: 'absolute', inset: 0,
                       width: '100%', height: '100%',
@@ -4644,7 +4645,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                         setVideoEndTime(v.duration);
                         videoEndRef.current = v.duration;
                       }
-                      v.currentTime = videoStartRef.current;
+                      nudgeVideoFrame(v, videoStartRef.current);
                     }}
                     style={{
                       // Fill the preview width (touch the horizontal limits); height keeps
