@@ -13,6 +13,7 @@ import { useGamepadNav } from './hooks/useGamepadNav';
 import { cursorState } from './hooks/cursorState';
 import { preloadUiSounds, playUi, setUiMuted } from './audio/uiSounds';
 import { preloadKeyboardSounds, setKeyboardSoundMuted } from './audio/keyboardSounds';
+import { getCtx } from './audio/audioContext';
 
 type Screen    = 'loading' | 'splash' | 'home';
 export type InputMode = 'keyboard' | 'controller';
@@ -325,12 +326,14 @@ export default function App() {
     const toKb = (e: Event) => {
       if (!e.isTrusted) return;
       setInputMode('keyboard');
+      getCtx(); // resume the shared AudioContext within this gesture (autoplay policy)
       preloadUiSounds();
       preloadKeyboardSounds();
     };
     const onKey = (e: KeyboardEvent) => {
       if (!e.isTrusted) return;
       setInputMode('keyboard');
+      getCtx(); // resume the shared AudioContext within this gesture (autoplay policy)
       preloadUiSounds();
       // Skip global shortcuts while any text input is focused (search bar, etc.)
       if (document.activeElement?.tagName === 'INPUT') return;
