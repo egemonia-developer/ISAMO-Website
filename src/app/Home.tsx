@@ -287,9 +287,10 @@ function DownloadButton({ inputMode, onClick }: { inputMode?: string; onClick?: 
         name="download"
         size={FS_SMALL}
         color="var(--ui-complement)"
-        // The glyph is drawn to the cap height; align its baseline to the text's so it
-        // matches the uppercase letters exactly (instead of flex-centring + a nudge).
-        style={{ opacity: hovered ? 1 : 0.5, alignSelf: 'baseline' }}
+        // Same glyph bounding box as key-s in the font (806x776 vs 807x776) — the
+        // mismatch came from `alignSelf: 'baseline'` overriding the row's centred
+        // alignment for this icon only. Use the same center + nudge as key-s instead.
+        style={{ opacity: hovered ? 1 : 0.5, position: 'relative', top: -1 }}
       />
     </span>
   );
@@ -457,6 +458,41 @@ function artistItemY(d: number, selW: number): number {
 /** Resolve audio src from a WItem id → /sounds/{id}.mp3 */
 function soundSrc(id: string) { return `/sounds/${id}.mp3`; }
 
+/** Encodes an AudioBuffer as a 16-bit PCM WAV Blob (for the "download with FX" feature). */
+function audioBufferToWav(buffer: AudioBuffer): Blob {
+  const numCh   = buffer.numberOfChannels;
+  const sr      = buffer.sampleRate;
+  const dataLen = buffer.length * numCh * 2;
+  const out     = new ArrayBuffer(44 + dataLen);
+  const view    = new DataView(out);
+  const writeStr = (offset: number, s: string) => {
+    for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i));
+  };
+
+  writeStr(0, 'RIFF'); view.setUint32(4, 36 + dataLen, true); writeStr(8, 'WAVE');
+  writeStr(12, 'fmt '); view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);              // PCM
+  view.setUint16(22, numCh, true);
+  view.setUint32(24, sr, true);
+  view.setUint32(28, sr * numCh * 2, true); // byte rate
+  view.setUint16(32, numCh * 2, true);      // block align
+  view.setUint16(34, 16, true);             // bits per sample
+  writeStr(36, 'data'); view.setUint32(40, dataLen, true);
+
+  const channels: Float32Array[] = [];
+  for (let c = 0; c < numCh; c++) channels.push(buffer.getChannelData(c));
+
+  let offset = 44;
+  for (let i = 0; i < buffer.length; i++) {
+    for (let c = 0; c < numCh; c++) {
+      const s = Math.max(-1, Math.min(1, channels[c][i]));
+      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+      offset += 2;
+    }
+  }
+  return new Blob([out], { type: 'audio/wav' });
+}
+
 /** Format seconds → "HH:MM:SS" */
 function formatDuration(sec: number): string {
   if (!isFinite(sec) || sec < 0) return '00:00:00';
@@ -495,7 +531,7 @@ const fxNext = (g: number, p: number) => FX_PARAM_SEQ[(fxSeqIdx(g, p) + 1) % FX_
 const fxPrev = (g: number, p: number) => FX_PARAM_SEQ[(fxSeqIdx(g, p) - 1 + FX_PARAM_SEQ.length) % FX_PARAM_SEQ.length];
 
 /** Generates a synthetic reverb impulse response (exponential noise decay). */
-function makeSyntheticIR(ctx: AudioContext, duration = 2.2, decay = 2.0): AudioBuffer {
+function makeSyntheticIR(ctx: BaseAudioContext, duration = 2.2, decay = 2.0): AudioBuffer {
   const sr = ctx.sampleRate;
   const len = Math.ceil(sr * duration);
   const buf = ctx.createBuffer(2, len, sr);
@@ -3191,7 +3227,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     }
   };
 
-  const downloadSound = () => {
+  const downloadOriginal = () => {
     if (!currentSoundId) return;
     const a = document.createElement('a');
     a.href     = soundSrc(currentSoundId);
@@ -3199,6 +3235,140 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+  };
+
+  // ── Download — bakes the current FX chain into the file, if any effect is active ──
+  // Mirrors the live graph built in initFxChain(), but rendered offline (no realtime
+  // playback) so the export reflects EQ / Reverb / Pan / Delay / Flanger / Arp / Pitch
+  // / Reverse exactly as currently set. With everything at its default (neutral) value,
+  // downloads the original MP3 untouched.
+  const downloadSound = async () => {
+    if (!currentSoundId) return;
+
+    const rate = playbackRate || 1;
+    const effectsActive =
+      eqLow !== 0 || eqMid !== 0 || eqHigh !== 0 ||
+      reverbWet > 0 || delayWet > 0 || magicWet > 0 ||
+      arpAmount > 0 || pan !== 0 || rate !== 1 || isReversed;
+
+    if (!effectsActive) { downloadOriginal(); return; }
+
+    try {
+      const resp    = await fetch(soundSrc(currentSoundId));
+      const ab      = await resp.arrayBuffer();
+      const decCtx  = new AudioContext();
+      const decoded = await decCtx.decodeAudioData(ab);
+      decCtx.close();
+
+      if (isReversed) {
+        for (let ch = 0; ch < decoded.numberOfChannels; ch++)
+          decoded.getChannelData(ch).reverse();
+      }
+
+      // + 3s tail so reverb/delay decay isn't cut off at the end of the buffer.
+      const outLength = Math.ceil(decoded.duration / Math.abs(rate) * decoded.sampleRate)
+        + decoded.sampleRate * 3;
+      const offline = new OfflineAudioContext(decoded.numberOfChannels, outLength, decoded.sampleRate);
+
+      const src = offline.createBufferSource();
+      src.buffer = decoded;
+      src.playbackRate.value = Math.abs(rate);
+
+      // ── EQ 3 ────────────────────────────────────────────────────────────────
+      const eqL = offline.createBiquadFilter();
+      eqL.type = 'lowshelf'; eqL.frequency.value = 120; eqL.gain.value = eqLow;
+      const eqM = offline.createBiquadFilter();
+      eqM.type = 'peaking'; eqM.frequency.value = 1000; eqM.Q.value = 0.8; eqM.gain.value = eqMid;
+      const eqH = offline.createBiquadFilter();
+      eqH.type = 'highshelf'; eqH.frequency.value = 8000; eqH.gain.value = eqHigh;
+
+      // ── Reverb ──────────────────────────────────────────────────────────────
+      const convolver = offline.createConvolver();
+      convolver.buffer = makeSyntheticIR(offline, 2.2, 2.0);
+      const revDry = offline.createGain(); revDry.gain.value = 1 - reverbWet;
+      const revWet = offline.createGain(); revWet.gain.value = reverbWet;
+      const revBus = offline.createGain();
+
+      // ── Delay ───────────────────────────────────────────────────────────────
+      const delay = offline.createDelay(4.0);
+      delay.delayTime.value = DELAY_TIMES[delayDivIdx];
+      const delFB  = offline.createGain(); delFB.gain.value = 0.32;
+      const delDry = offline.createGain(); delDry.gain.value = 1 - delayWet;
+      const delWet = offline.createGain(); delWet.gain.value = delayWet;
+      const delBus = offline.createGain();
+
+      // ── Flanger ─────────────────────────────────────────────────────────────
+      const magDry = offline.createGain(); magDry.gain.value = 1 - magicWet;
+      const magWet = offline.createGain(); magWet.gain.value = magicWet;
+      const magBus = offline.createGain();
+      const flangerDelay = offline.createDelay(0.02);
+      flangerDelay.delayTime.value = 0.005;
+      const flangerFB = offline.createGain(); flangerFB.gain.value = 0.5;
+      const flangerLfo = offline.createOscillator();
+      flangerLfo.type = 'sine';
+      flangerLfo.frequency.value = FLANGER_RATE_MIN
+        + (magicVoices - 1) / (MAGIC_MAX_V - 1) * (FLANGER_RATE_MAX - FLANGER_RATE_MIN);
+      const flangerLfoGain = offline.createGain(); flangerLfoGain.gain.value = 0.004;
+      flangerLfo.connect(flangerLfoGain); flangerLfoGain.connect(flangerDelay.delayTime);
+
+      // ── Arpeggiatore ────────────────────────────────────────────────────────
+      const arpAmt0   = arpAmount / 100;
+      const arpDepth0 = arpAmt0 / 2;
+      const arpLfo = offline.createOscillator();
+      arpLfo.type = 'square';
+      arpLfo.frequency.value = ARP_RATE_MIN + arpAmt0 * (ARP_RATE_MAX - ARP_RATE_MIN);
+      const arpDepth = offline.createGain(); arpDepth.gain.value = arpDepth0;
+      const arpGate  = offline.createGain(); arpGate.gain.value = 1 - arpDepth0;
+      arpLfo.connect(arpDepth); arpDepth.connect(arpGate.gain);
+
+      // ── Pan + limiter ───────────────────────────────────────────────────────
+      const panner = offline.createStereoPanner();
+      panner.pan.value = pan;
+      const limiter = offline.createDynamicsCompressor();
+      limiter.threshold.value = -9; limiter.knee.value = 0;
+      limiter.ratio.value = 20; limiter.attack.value = 0.001; limiter.release.value = 0.15;
+
+      // ── Wire it all together (same topology as initFxChain) ───────────────────
+      src.connect(eqL); eqL.connect(eqM); eqM.connect(eqH);
+
+      eqH.connect(revDry); eqH.connect(convolver);
+      convolver.connect(revWet);
+      revDry.connect(revBus); revWet.connect(revBus);
+
+      revBus.connect(delDry); revBus.connect(delay);
+      delay.connect(delFB); delFB.connect(delay);
+      delay.connect(delWet);
+      delDry.connect(delBus); delWet.connect(delBus);
+
+      delBus.connect(magDry);
+      delBus.connect(flangerDelay);
+      flangerDelay.connect(flangerFB); flangerFB.connect(flangerDelay);
+      flangerDelay.connect(magWet);
+      magDry.connect(magBus); magWet.connect(magBus);
+
+      magBus.connect(panner);
+      panner.connect(arpGate);
+      arpGate.connect(limiter);
+      limiter.connect(offline.destination);
+
+      src.start();
+      flangerLfo.start();
+      arpLfo.start();
+
+      const rendered = await offline.startRendering();
+      const blob = audioBufferToWav(rendered);
+      const url  = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href     = url;
+      a.download = `${currentSoundId}-fx.wav`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.warn('[download] FX render failed, falling back to original file:', err);
+      downloadOriginal();
+    }
   };
 
   const skipForward = () => {
