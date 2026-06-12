@@ -5,6 +5,7 @@ import { playUi } from './audio/uiSounds';
 import { preloadKeyboardSounds } from './audio/keyboardSounds';
 import { useTypewriter } from './hooks/useTypewriter';
 import { INITIAL_BOARD_VIDEOS } from './Home';
+import { VideoTile } from './VideoTile';
 import type { InputMode } from './App';
 import { type Lang, getStrings } from './i18n/strings';
 import { Icon } from './icons';
@@ -431,9 +432,8 @@ export function SplashScreen({ onStart, inputMode = 'keyboard', onControllerInpu
                 </div>
                 {/* Video — right (plays only while its row is hovered/selected) */}
                 <div style={{ flexShrink: 0, position: 'relative' }}>
-                  <video
+                  <VideoTile
                     src={p.src}
-                    muted loop playsInline preload="metadata"
                     style={{ height: '40vh', aspectRatio: '1 / 1', objectFit: 'cover', display: 'block', filter: 'grayscale(1)', transition: 'filter 0.3s ease' }}
                   />
                   {/* Mute / unmute overlay — like the Board: blended (difference), shown on selection, click toggles audio.

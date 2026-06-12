@@ -12,6 +12,7 @@ import { useTypewriter } from './hooks/useTypewriter';
 import type { InputMode } from './App';
 import { motion, AnimatePresence, useIsPresent } from 'motion/react';
 import { Icon, type IconName } from './icons';
+import { VideoTile } from './VideoTile';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 type WItem    = { id: string; label: string; title: string; duration: string };
@@ -676,22 +677,11 @@ function TagLabel({ label, onClick }: {
 // ── Moodboard video item — plays only when active; muted prop toggleable ─────
 // With all 24 board items mounted at once, loading every <video src> up front
 // means 24 simultaneous metadata fetches (242MB of source files). Instead, each
-// item only gets its `src` once it scrolls near the viewport (or is selected),
-// so off-screen items cost nothing until the user reaches them.
+// item only gets its `src` once it scrolls near the viewport (or is selected) —
+// unless the connection is slow, in which case VideoTile loads every item's
+// compressed /refs-lq/ variant up front and falls back to an accent square on error.
 function MoodboardVideoItem({ src, isActive, isMuted, fullView = false }: { src: string; isActive: boolean; isMuted: boolean; fullView?: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    if (inView) return;
-    const v = ref.current;
-    if (!v) return;
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setInView(true); obs.disconnect(); }
-    }, { rootMargin: '50% 0px' });
-    obs.observe(v);
-    return () => obs.disconnect();
-  }, [inView]);
 
   useEffect(() => {
     const v = ref.current;
@@ -706,13 +696,11 @@ function MoodboardVideoItem({ src, isActive, isMuted, fullView = false }: { src:
     v.muted = isMuted;
   }, [isMuted]);
 
-  const load = inView || isActive;
-
   return (
-    <video
-      ref={ref}
-      src={load ? src : undefined}
-      muted loop playsInline preload={load ? 'metadata' : 'none'}
+    <VideoTile
+      src={src}
+      lazy={!isActive}
+      videoRef={ref}
       style={{ width: '100%', display: 'block',
                aspectRatio: fullView ? '16 / 9' : '1 / 1',
                objectFit: fullView ? 'contain' : 'cover' }}
