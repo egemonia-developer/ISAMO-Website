@@ -19,6 +19,8 @@ const ICON_CP = {
   pause: 0xe02d, play: 0xe02e, reverse: 0xe02f, select: 0xe030, settings: 0xe031, skip: 0xe032,
   'sort-down': 0xe033, 'sort-up': 0xe034, star: 0xe035, start: 0xe036, trash: 0xe037,
   'two-columns': 0xe038, unmute: 0xe039, upload: 0xe03a, esc: 0xe03b,
+  'croce-down': 0xe03c, 'croce-left': 0xe03d, 'croce-right': 0xe03e, 'croce-up': 0xe03f,
+  'left-stick': 0xe040,
   camera: 0x1f4f7, heart: 0x2665, circle: 0x25cb,
 } as const;
 

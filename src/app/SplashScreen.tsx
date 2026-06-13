@@ -392,7 +392,10 @@ export function SplashScreen({ onStart, inputMode = 'keyboard', onControllerInpu
         }}
       >
         {S.navHint1}<br />{S.navHintUse}{' '}
-        {(['key-right', 'key-down', 'key-left', 'key-up'] as const).map(n => (
+        {(inputMode === 'controller'
+          ? (['croce-right', 'croce-down', 'croce-left', 'croce-up'] as const)
+          : (['key-right', 'key-down', 'key-left', 'key-up'] as const)
+        ).map(n => (
           <Icon key={n} name={n} size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 2px' }} />
         ))}
         {' '}{S.navHintExplore}

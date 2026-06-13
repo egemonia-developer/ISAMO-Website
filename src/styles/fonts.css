@@ -14,7 +14,7 @@
    point to the same new font; only the Japanese face (below) is left untouched. */
 @font-face {
   font-family: 'Isamo Rasterize';
-  src: url('/fonts/isamo-sans-display.otf?v=3') format('opentype');
+  src: url('/fonts/isamo-sans-display.otf?v=4') format('opentype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -22,7 +22,7 @@
 
 @font-face {
   font-family: 'Isamo Fat';
-  src: url('/fonts/isamo-sans-display.otf?v=3') format('opentype');
+  src: url('/fonts/isamo-sans-display.otf?v=4') format('opentype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
