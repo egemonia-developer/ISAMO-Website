@@ -1558,6 +1558,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
   const lfoGateRef         = useRef<GainNode | null>(null);
   const lfoOscRef          = useRef<OscillatorNode | null>(null);
   const lfoDepthRef        = useRef<GainNode | null>(null);
+  const keepAliveRef       = useRef<ConstantSourceNode | null>(null);
   const searchInputRef         = useRef<HTMLInputElement>(null);
   const playerSearchInputRef   = useRef<HTMLInputElement>(null);
   const artistSearchInputRef   = useRef<HTMLInputElement>(null);
@@ -2773,6 +2774,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       setSoundProgress(0);
       if (audioBarFillRef.current) audioBarFillRef.current.style.transform = 'scaleX(0)';
       videoRef.current?.pause();
+      // Keep the FX context running so reverb/delay/flanger tails ring out past
+      // the natural end (browsers may otherwise idle-suspend it on deployed sites).
+      fxCtxRef.current?.resume().catch(() => {});
     };
 
     audio.addEventListener('loadedmetadata', onMeta);
@@ -2953,6 +2957,17 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     try {
       const ctx = new AudioContext();
       fxCtxRef.current = ctx;
+
+      // ── Keep-alive — a silent, always-on source (offset 0 → outputs zero) ───
+      // On deployed sites with low media-engagement, browsers stop rendering the
+      // Web Audio graph the moment the <audio> source stops, which truncates the
+      // reverb/delay/flanger tails at the natural end of a sound. An always-running
+      // source forces the render thread to keep processing, so the tails ring out.
+      const keepAlive = ctx.createConstantSource();
+      keepAlive.offset.value = 0;
+      keepAlive.connect(ctx.destination);
+      keepAlive.start();
+      keepAliveRef.current = keepAlive;
 
       // Source
       const src = ctx.createMediaElementSource(audio);
