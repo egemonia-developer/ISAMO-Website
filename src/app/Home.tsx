@@ -3678,6 +3678,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
   // cbRef in useGamepadNav is updated after every render, so onConfirm always
   // sees the latest isMoodboard / focusedW / setMutedVideos — no stale closure.
   useGamepadNav({
+    // Any pad input switches back into controller mode (so the on-screen icons
+    // flip from keyboard glyphs to controller glyphs) — mirrors SplashScreen.
+    onAnyInput:   onControllerInput,
     onUp:         () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp',    bubbles: true })),
     onDown:       () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown',  bubbles: true })),
     onLeft:       () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft',  bubbles: true })),
@@ -3685,11 +3688,10 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     onStickRight: () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true })),
     onConfirm: () => {
       if (cursorState.active) return;
-      // Idle intro — A advances the welcome text (mirrors the Enter key)
+      // Idle intro — A mirrors Enter exactly: 1st press completes the typewriter,
+      // 2nd advances the page, and exits the intro on the last page.
       if (isYIdle) {
-        if (welcomePageIdx < welcomePagesRef.current.length - 1) { welcomeNext(false); return; }
-        cancelTts(); setWelcomeMuted(true);
-        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
         return;
       }
       if (isSettingsPanel) {
@@ -3711,13 +3713,10 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
         lastMuteConfirmW.current = focusedW;
       }
     },
+    // B (short press) → open the search bar (mirrors the F key). Back navigation
+    // lives on D-pad Left / LB; holding B still returns to the board (onBackHeld).
     onBack: () => {
-      if (isSettingsVActive) { goV(null); return; }   // exit V → back to W preview
-      if (isSettingsPanel)   { goW(null); return; }   // exit W → back to X
-      if (isLibraryPanel && focusedW !== null && fxFocus !== null) {
-        setFxFocus(null); setFxParam(0); playUi('undo'); return;
-      }
-      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F', bubbles: true }));
     },
     onLB: () => {
       // In sound player → retrigger audio; otherwise → back (ArrowLeft)
@@ -3785,7 +3784,6 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'C', bubbles: true }));
       }
     },
-    onSelect:  () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F', bubbles: true })),
     onRB: () => {
       // Board view → toggle sort direction (mirrors the G key); sound player → reverse toggle
       if (isMoodboard) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'G', bubbles: true }));

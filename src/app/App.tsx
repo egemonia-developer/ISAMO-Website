@@ -544,8 +544,8 @@ export default function App() {
         }));
       }
     },
-    // X button → global mute toggle (all screens)
-    onX: () => toggleGeneralMute(),
+    // Select button → global mute toggle (all screens)
+    onSelect: () => toggleGeneralMute(),
   });
 
   // Cursor initial position for React style (updated by direct DOM between renders)
