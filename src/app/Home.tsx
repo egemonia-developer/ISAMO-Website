@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef, useMemo, type ReactNode, type WheelEvent as ReactWheelEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, type CSSProperties, type ReactNode, type WheelEvent as ReactWheelEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { type Lang, LANGS, getStrings, tLabel } from './i18n/strings';
 
 // Native display name for each UI language (shown in the Settings → Language picker)
@@ -507,17 +507,22 @@ const MAGIC_MAX_V      = 7;                      // Flanger: rate levels (1..7)
 const FLANGER_RATE_MIN = 0.05;                   // Hz, sweep speed at rate level 1
 const FLANGER_RATE_MAX = 0.6;                    // Hz, sweep speed at rate level MAGIC_MAX_V
 
-// ── Arpeggiatore — rhythmic gain-gate (square LFO) ────────────────────────────
-const ARP_RATE_MIN = 2;   // Hz, gate rate at amount = 0 (effect inaudible: depth = 0)
-const ARP_RATE_MAX = 12;  // Hz, gate rate at amount = 100
+// ── LFO — gain-modulation oscillator, adjustable rate + waveform ─────────────
+const LFO_WAVES: readonly string[] = ['OFF', 'SIN', 'TRI', 'SQR', 'SAW']; // index 0 = bypass (depth 0)
+const LFO_OSC_TYPES: OscillatorType[] = ['sine', 'sine', 'triangle', 'square', 'sawtooth']; // [0] unused while OFF
+const LFO_RATE_MIN = 0.5; // Hz, rate value = 0
+const LFO_RATE_MAX = 12;  // Hz, rate value = 100
+const LFO_DEPTH    = 0.5; // gain-gate modulation depth while a waveform is selected
 
-// ── Effects panel — 2×3 grid, row-major: [EQ, REVERB, PAN] / [DELAY, FLANGER, ARP] ─
+// ── Effects panel — 2×3 grid, row-major: [VOLUME, REVERB, PAN] / [DELAY, FLANGER, LFO] ─
 const FX_VALUE_W = 100; // fixed bracket slot per value cell — sized to fit the longest delay-division word across all languages ("MEDIUM")
 const FX_DRAG_STEP_PX = 7; // vertical mouse travel per value step when click-dragging a value
-const FX_PARAM_COUNT = [3, 1, 1, 2, 2, 2] as const; // sub-values per group
+const FX_PARAM_COUNT = [1, 1, 1, 2, 2, 2] as const; // sub-values per group
 // Canonical (English) group labels, in the same row-major order as FX_PARAM_COUNT —
 // used both for the on-screen labels (via tLabel) and for the hover explanations.
-const FX_GROUP_LABELS = ['Equalizer', 'Reverb', 'Left/Right', 'Delay', 'Flanger', 'Arpeggiator'] as const;
+const FX_GROUP_LABELS = ['Volume', 'Reverb', 'Left/Right', 'Delay', 'Flanger', 'LFO'] as const;
+const VOLUME_MIN = 0;   // %
+const VOLUME_MAX = 200; // %
 // Flat row-major sequence of every (group, param) pair — navigation mode is
 // directly active once inside the FX panel: ←/→ step through this sequence
 // (wrapping), ↑/↓ adjust the focused parameter's value. No separate "edit" step.
@@ -944,8 +949,8 @@ function SoundPlayerHintText({ inputMode, lang = 'en', color = '#fff', fontSize 
 
 // One page of the intro text. Types `text`; when done, shows a blinking enter
 // icon if `hasMore` (indicates there's a continuation behind Enter).
-function WelcomePage({ text, hasMore, active, onDone, inputMode }: { text: string; hasMore: boolean; active: boolean; onDone?: () => void; inputMode: 'keyboard' | 'controller' }) {
-  const typed = useTypewriter(active ? text : '', 11, 1000, undefined, 2);
+function WelcomePage({ text, hasMore, active, onDone, inputMode, skipSignal }: { text: string; hasMore: boolean; active: boolean; onDone?: () => void; inputMode: 'keyboard' | 'controller'; skipSignal?: number }) {
+  const typed = useTypewriter(active ? text : '', 11, 1000, undefined, 2, skipSignal);
   const done = typed.length >= text.length;
   useEffect(() => { if (done) onDone?.(); }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
@@ -1047,7 +1052,7 @@ function OnlineInfoText({ lang = 'en' }: { lang?: Lang }) {
 // FX hover explanation — small typewriter text shown top-left next to the ometto.
 function FxExplanationText({ text }: { text: string }) {
   const isPresent = useIsPresent();
-  const displayed = useTypewriter(isPresent ? text : '', 11, 150, undefined, 2);
+  const displayed = useTypewriter(isPresent ? text : '', 11, 150, undefined, 2, 0, playBackspaceSound);
   return (
     <p style={{ margin: 0, fontSize: FS_SMALL, lineHeight: 1.3, color: 'var(--ui-fg)',
                 letterSpacing: '0.04em', fontFamily: FONT, whiteSpace: 'pre-line' }}>
@@ -1338,6 +1343,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
   const [welcomeShiftY, setWelcomeShiftY] = useState(0);
   // Which pages have finished typing — TTS may only read a page once its text is shown
   const [typedPages, setTypedPages] = useState<Set<number>>(new Set());
+  // Skip counter for the current welcome page: an early Enter (while still
+  // typing) increments this to force-complete the typewriter instantly.
+  const [welcomeSkip, setWelcomeSkip] = useState(0);
   const lastSpokenPageRef = useRef(-1);
   // Move forward (reveals the next page if needed) / backward through intro pages.
   // Navigating (Enter / arrows / wheel) stops the ometto's current playback —
@@ -1507,17 +1515,16 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     speak(randomPreview(), { force: true, indicateLoading: true });   // …then preview with the new params
   };
 
-  // ── FX state (EQ 3 + Reverb + Delay + Magic) ────────────────────────────────
-  const [eqLow,       setEqLow]       = useState(0);    // dB  –12..+12
-  const [eqMid,       setEqMid]       = useState(0);
-  const [eqHigh,      setEqHigh]      = useState(0);
+  // ── FX state (Volume + Reverb + Delay + Magic) ──────────────────────────────
+  const [volume,      setVolume]      = useState(100);  // %  0..200 (100 = unity gain)
   const [reverbWet,   setReverbWet]   = useState(0);    // 0..1
   const [delayWet,    setDelayWet]    = useState(0);    // 0..1
   const [delayDivIdx, setDelayDivIdx] = useState(2);    // default = '1/2' (1.0 s)
   const [magicWet,    setMagicWet]    = useState(0);    // 0..1
   const [magicVoices, setMagicVoices] = useState(4);   // 1..7 (Hyper voice count)
   const [pan,         setPan]         = useState(0);    // -1 (L) .. 0 (C) .. +1 (R)
-  const [arpAmount,   setArpAmount]   = useState(0);    // 0..100 (ARPEGGIATORE: rhythmic gate amount)
+  const [lfoWaveIdx,  setLfoWaveIdx]  = useState(0);    // 0..LFO_WAVES.length-1 (0 = OFF)
+  const [lfoRate,     setLfoRate]     = useState(50);   // 0..100
 
   // FX value drag — hold on a value and move the mouse up/down to adjust it.
   // `acc` accumulates vertical movement; every FX_DRAG_STEP_PX of travel = one step.
@@ -1536,9 +1543,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
   const fxInitRef    = useRef(false);
   const fxCtxRef     = useRef<AudioContext | null>(null);
   const fxSourceRef  = useRef<MediaElementSourceNode | null>(null);
-  const eqLowRef     = useRef<BiquadFilterNode | null>(null);
-  const eqMidRef     = useRef<BiquadFilterNode | null>(null);
-  const eqHighRef    = useRef<BiquadFilterNode | null>(null);
+  const volumeGainRef = useRef<GainNode | null>(null);
   const reverbDryRef = useRef<GainNode | null>(null);
   const reverbWetRef = useRef<GainNode | null>(null);
   const delayNodeRef = useRef<DelayNode | null>(null);
@@ -1550,9 +1555,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
   const flangerLfoRef     = useRef<OscillatorNode | null>(null);
   const panNodeRef         = useRef<StereoPannerNode | null>(null);
   const fadeGainRef        = useRef<GainNode | null>(null);
-  const arpGateRef         = useRef<GainNode | null>(null);
-  const arpLfoRef          = useRef<OscillatorNode | null>(null);
-  const arpDepthRef        = useRef<GainNode | null>(null);
+  const lfoGateRef         = useRef<GainNode | null>(null);
+  const lfoOscRef          = useRef<OscillatorNode | null>(null);
+  const lfoDepthRef        = useRef<GainNode | null>(null);
   const searchInputRef         = useRef<HTMLInputElement>(null);
   const playerSearchInputRef   = useRef<HTMLInputElement>(null);
   const artistSearchInputRef   = useRef<HTMLInputElement>(null);
@@ -1581,9 +1586,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
   useEffect(() => { soundEndRef.current   = soundEndTime;   }, [soundEndTime]);
 
   // ── FX param → Web Audio node sync ───────────────────────────────────────────
-  useEffect(() => { if (eqLowRef.current)  eqLowRef.current.gain.value  = eqLow;  }, [eqLow]);
-  useEffect(() => { if (eqMidRef.current)  eqMidRef.current.gain.value  = eqMid;  }, [eqMid]);
-  useEffect(() => { if (eqHighRef.current) eqHighRef.current.gain.value = eqHigh; }, [eqHigh]);
+  useEffect(() => { if (volumeGainRef.current) volumeGainRef.current.gain.value = volume / 100; }, [volume]);
   useEffect(() => {
     if (reverbDryRef.current) reverbDryRef.current.gain.value = 1 - reverbWet;
     if (reverbWetRef.current) reverbWetRef.current.gain.value = reverbWet;
@@ -1607,15 +1610,16 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     }
   }, [magicVoices]);
   useEffect(() => {
-    const lfo = arpLfoRef.current, depthG = arpDepthRef.current, gate = arpGateRef.current, ctx = fxCtxRef.current;
+    const lfo = lfoOscRef.current, depthG = lfoDepthRef.current, gate = lfoGateRef.current, ctx = fxCtxRef.current;
     if (!lfo || !depthG || !gate || !ctx) return;
-    const amt   = arpAmount / 100;             // 0 (off) .. 1 (full chop)
-    const depth = amt / 2;
-    const rate  = ARP_RATE_MIN + amt * (ARP_RATE_MAX - ARP_RATE_MIN);
+    const active = lfoWaveIdx > 0;
+    const depth  = active ? LFO_DEPTH : 0;
+    const rate   = LFO_RATE_MIN + (lfoRate / 100) * (LFO_RATE_MAX - LFO_RATE_MIN);
+    lfo.type = LFO_OSC_TYPES[lfoWaveIdx];
     lfo.frequency.setTargetAtTime(rate, ctx.currentTime, 0.01);
     depthG.gain.setTargetAtTime(depth, ctx.currentTime, 0.01);
     gate.gain.setTargetAtTime(1 - depth, ctx.currentTime, 0.01);
-  }, [arpAmount]);
+  }, [lfoWaveIdx, lfoRate]);
 
   // Revoke object URL and close AudioContext when component unmounts
   useEffect(() => () => {
@@ -1692,10 +1696,8 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
   const adjustFxValue = (g: number, p: number, dir: 1 | -1) => {
     initFxChain(); // ensure the Web Audio graph exists so the change is audible
     switch (g) {
-      case 0: // EQUALIZZATORE — LO/MID/HI, dB -12..12, step 1
-        if (p === 0) setEqLow(v => Math.max(-12, Math.min(12, v + dir)));
-        else if (p === 1) setEqMid(v => Math.max(-12, Math.min(12, v + dir)));
-        else setEqHigh(v => Math.max(-12, Math.min(12, v + dir)));
+      case 0: // VOLUME — % 0..200, step 5
+        setVolume(v => Math.max(VOLUME_MIN, Math.min(VOLUME_MAX, v + dir * 5)));
         break;
       case 1: // RIVERBERO — wet 0..1, step 0.05
         setReverbWet(v => Math.max(0, Math.min(1, parseFloat((v + dir * 0.05).toFixed(2)))));
@@ -1711,12 +1713,11 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
         if (p === 0) setMagicWet(v => Math.max(0, Math.min(1, parseFloat((v + dir * 0.05).toFixed(2)))));
         else setMagicVoices(v => Math.max(1, Math.min(MAGIC_MAX_V, v + dir)));
         break;
-      case 5: // ARPEGGIATORE — p=0: SI/NO (on/off toggle), p=1: rate 0..100, step 5
-        if (p === 0) setArpAmount(v => v > 0 ? 0 : 50); // off→on uses a sensible default rate
-        else         setArpAmount(v => Math.max(0, Math.min(100, v + dir * 5)));
+      case 5: // LFO — p=0: waveform type (cycles, incl. OFF), p=1: rate 0..100, step 5
+        if (p === 0) setLfoWaveIdx(v => (v + dir + LFO_WAVES.length) % LFO_WAVES.length);
+        else         setLfoRate(v => Math.max(0, Math.min(100, v + dir * 5)));
         break;
     }
-    playUi('horizontal');
   };
 
   // Deep-link: jump directly to a sound from a board pill click.
@@ -1827,12 +1828,13 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
         // ── Right ──────────────────────────────────────────────
         case 'ArrowRight': {
           e.preventDefault();
-          playUi('horizontalRight');
           // Effects panel: → steps to the next parameter (flat, wraps across groups/rows)
           if (isLibraryPanel && focusedW !== null && fxFocus !== null) {
+            playUi('fxScroll');
             const [g, p] = fxNext(fxFocus, fxParam); setFxFocus(g); setFxParam(p);
             break;
           }
+          playUi('horizontalRight');
           if (focusedY === null) { goY(0); break; }
           if (focusedX === null) { goX(0); break; }
           if (isArtistCat || isSettingsCat) {
@@ -1904,12 +1906,13 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
         // ── Left ───────────────────────────────────────────────
         case 'ArrowLeft': {
           e.preventDefault();
-          playUi('horizontalLeft');
           // Effects panel: ← steps to the previous parameter (flat, wraps across groups/rows)
           if (isLibraryPanel && focusedW !== null && fxFocus !== null) {
+            playUi('fxScroll');
             const [g, p] = fxPrev(fxFocus, fxParam); setFxFocus(g); setFxParam(p);
             break;
           }
+          playUi('horizontalLeft');
           if (inMB) {
             const pos = focusedW !== null ? visIdx.indexOf(focusedW) : -1;
             if (pos > 0 && pos % boardCols !== 0) { goW(visIdx[pos - 1]); break; }
@@ -1957,12 +1960,13 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
         // ── Down ───────────────────────────────────────────────
         case 'ArrowDown': {
           e.preventDefault();
-          playUi('verticalDown');
           // Effects panel: ↓ decreases the focused parameter's value
           if (isLibraryPanel && focusedW !== null && fxFocus !== null) {
+            playUi('fxScroll');
             adjustFxValue(fxFocus, fxParam, -1);
             break;
           }
+          playUi('verticalDown');
           // Idle intro: ↓ advances to the next (or new) page
           if (isYIdle) { if (welcomePageIdx < welcomePagesRef.current.length - 1) welcomeNext(); break; }
           // Settings V column navigation (takes priority)
@@ -2029,12 +2033,13 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
         // ── Up ─────────────────────────────────────────────────
         case 'ArrowUp': {
           e.preventDefault();
-          playUi('verticalUp');
           // Effects panel: ↑ increases the focused parameter's value
           if (isLibraryPanel && focusedW !== null && fxFocus !== null) {
+            playUi('fxScroll');
             adjustFxValue(fxFocus, fxParam, 1);
             break;
           }
+          playUi('verticalUp');
           // Idle intro: ↑ goes back to the previous (greyed) page
           if (isYIdle) { if (welcomePageIdx > 0) welcomePrev(); break; }
           // Settings V column navigation (takes priority)
@@ -2350,15 +2355,21 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
             else                  { setFxFocus(null); setFxParam(0); playUi('undo'); }
             break;
           }
-          // Idle intro: advance to the next page of text instead of navigating.
-          // Ometto keeps talking across the page change — Enter only blocks it
-          // once the last page is reached (handled below, before exiting idle).
-          if (isYIdle && welcomePageIdx < welcomePagesRef.current.length - 1) {
-            welcomeNext(false);
-            break;
-          }
-          // Last page: Enter now exits the intro — block ometto's playback.
-          if (isYIdle && welcomePageIdx === welcomePagesRef.current.length - 1) {
+          // Idle intro: a first Enter while the current page is still typing
+          // completes it instantly; a second Enter advances to the next page
+          // (ometto keeps talking across the page change). On the last page,
+          // once fully shown, Enter exits the intro (handled below).
+          if (isYIdle) {
+            if (!typedPages.has(welcomePageIdx)) {
+              setWelcomeSkip(s => s + 1);
+              break;
+            }
+            if (welcomePageIdx < welcomePagesRef.current.length - 1) {
+              setWelcomeSkip(0);
+              welcomeNext(false);
+              break;
+            }
+            // Last page, fully shown: exit the intro — block ometto's playback.
             cancelTts(); setWelcomeMuted(true);
           }
           // Settings-specific handling takes priority
@@ -2947,16 +2958,12 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       const src = ctx.createMediaElementSource(audio);
       fxSourceRef.current = src;
 
-      // ── EQ 3 ──────────────────────────────────────────────────────────────
-      // Nodes are seeded with the CURRENT state values (not hardcoded zeros) so
-      // any effect set before the first play is reflected the moment audio runs.
-      const eqL = ctx.createBiquadFilter();
-      eqL.type = 'lowshelf'; eqL.frequency.value = 120; eqL.gain.value = eqLow;
-      const eqM = ctx.createBiquadFilter();
-      eqM.type = 'peaking'; eqM.frequency.value = 1000; eqM.Q.value = 0.8; eqM.gain.value = eqMid;
-      const eqH = ctx.createBiquadFilter();
-      eqH.type = 'highshelf'; eqH.frequency.value = 8000; eqH.gain.value = eqHigh;
-      eqLowRef.current = eqL; eqMidRef.current = eqM; eqHighRef.current = eqH;
+      // ── Volume — overall gain control (0..200 %) ───────────────────────────
+      // Seeded with the CURRENT state value (not hardcoded) so any level set
+      // before the first play is reflected the moment audio runs.
+      const volumeGain = ctx.createGain();
+      volumeGain.gain.value = volume / 100;
+      volumeGainRef.current = volumeGain;
 
       // ── Reverb (ConvolverNode + synthetic IR) ──────────────────────────────
       const convolver = ctx.createConvolver();
@@ -3002,11 +3009,11 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       flangerLfoRef.current = flangerLfo;
 
       // ── Wire it all together ──────────────────────────────────────────────
-      // src → EQ chain
-      src.connect(eqL); eqL.connect(eqM); eqM.connect(eqH);
+      // src → Volume
+      src.connect(volumeGain);
 
-      // EQ → Reverb (dry + wet → revBus)
-      eqH.connect(revDry); eqH.connect(convolver);
+      // Volume → Reverb (dry + wet → revBus)
+      volumeGain.connect(revDry); volumeGain.connect(convolver);
       convolver.connect(revWet);
       revDry.connect(revBus); revWet.connect(revBus);
 
@@ -3033,18 +3040,18 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       panner.pan.value = pan;
       panNodeRef.current = panner;
 
-      // ── Arpeggiatore — rhythmic gain gate (square LFO modulating a GainNode).
-      // amount = 0 → depth 0, gate stays at gain 1 (no audible effect).
-      const arpAmt0   = arpAmount / 100;
-      const arpDepth0 = arpAmt0 / 2;
-      const arpLfo = ctx.createOscillator();
-      arpLfo.type = 'square';
-      arpLfo.frequency.value = ARP_RATE_MIN + arpAmt0 * (ARP_RATE_MAX - ARP_RATE_MIN);
-      const arpDepth = ctx.createGain(); arpDepth.gain.value = arpDepth0;
-      const arpGate  = ctx.createGain(); arpGate.gain.value = 1 - arpDepth0;
-      arpLfo.connect(arpDepth); arpDepth.connect(arpGate.gain);
-      arpLfo.start();
-      arpGateRef.current = arpGate; arpLfoRef.current = arpLfo; arpDepthRef.current = arpDepth;
+      // ── LFO — gain-modulation oscillator (rate + waveform adjustable).
+      // OFF → depth 0, gate stays at gain 1 (no audible effect).
+      const lfoActive0 = lfoWaveIdx > 0;
+      const lfoDepth0  = lfoActive0 ? LFO_DEPTH : 0;
+      const lfoOsc = ctx.createOscillator();
+      lfoOsc.type = LFO_OSC_TYPES[lfoWaveIdx];
+      lfoOsc.frequency.value = LFO_RATE_MIN + (lfoRate / 100) * (LFO_RATE_MAX - LFO_RATE_MIN);
+      const lfoDepth = ctx.createGain(); lfoDepth.gain.value = lfoDepth0;
+      const lfoGate  = ctx.createGain(); lfoGate.gain.value = 1 - lfoDepth0;
+      lfoOsc.connect(lfoDepth); lfoDepth.connect(lfoGate.gain);
+      lfoOsc.start();
+      lfoGateRef.current = lfoGate; lfoOscRef.current = lfoOsc; lfoDepthRef.current = lfoDepth;
 
       // ── Limiter — catches loud peaks before output ─────────────────────────
       const limiter = ctx.createDynamicsCompressor();
@@ -3056,8 +3063,8 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
 
       magBus.connect(fadeGain);
       fadeGain.connect(panner);
-      panner.connect(arpGate);
-      arpGate.connect(limiter);
+      panner.connect(lfoGate);
+      lfoGate.connect(limiter);
       limiter.connect(ctx.destination);
 
       fxInitRef.current = true;
@@ -3237,7 +3244,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
 
   // ── Download — bakes the current FX chain into the file, if any effect is active ──
   // Mirrors the live graph built in initFxChain(), but rendered offline (no realtime
-  // playback) so the export reflects EQ / Reverb / Pan / Delay / Flanger / Arp / Pitch
+  // playback) so the export reflects EQ / Reverb / Pan / Delay / Flanger / LFO / Pitch
   // / Reverse exactly as currently set. With everything at its default (neutral) value,
   // downloads the original MP3 untouched.
   const downloadSound = async () => {
@@ -3245,9 +3252,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
 
     const rate = playbackRate || 1;
     const effectsActive =
-      eqLow !== 0 || eqMid !== 0 || eqHigh !== 0 ||
+      volume !== 100 ||
       reverbWet > 0 || delayWet > 0 || magicWet > 0 ||
-      arpAmount > 0 || pan !== 0 || rate !== 1 || isReversed;
+      lfoWaveIdx > 0 || pan !== 0 || rate !== 1 || isReversed;
 
     if (!effectsActive) { downloadOriginal(); return; }
 
@@ -3272,13 +3279,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       src.buffer = decoded;
       src.playbackRate.value = Math.abs(rate);
 
-      // ── EQ 3 ────────────────────────────────────────────────────────────────
-      const eqL = offline.createBiquadFilter();
-      eqL.type = 'lowshelf'; eqL.frequency.value = 120; eqL.gain.value = eqLow;
-      const eqM = offline.createBiquadFilter();
-      eqM.type = 'peaking'; eqM.frequency.value = 1000; eqM.Q.value = 0.8; eqM.gain.value = eqMid;
-      const eqH = offline.createBiquadFilter();
-      eqH.type = 'highshelf'; eqH.frequency.value = 8000; eqH.gain.value = eqHigh;
+      // ── Volume ──────────────────────────────────────────────────────────────
+      const volumeGain = offline.createGain();
+      volumeGain.gain.value = volume / 100;
 
       // ── Reverb ──────────────────────────────────────────────────────────────
       const convolver = offline.createConvolver();
@@ -3309,15 +3312,15 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       const flangerLfoGain = offline.createGain(); flangerLfoGain.gain.value = 0.004;
       flangerLfo.connect(flangerLfoGain); flangerLfoGain.connect(flangerDelay.delayTime);
 
-      // ── Arpeggiatore ────────────────────────────────────────────────────────
-      const arpAmt0   = arpAmount / 100;
-      const arpDepth0 = arpAmt0 / 2;
-      const arpLfo = offline.createOscillator();
-      arpLfo.type = 'square';
-      arpLfo.frequency.value = ARP_RATE_MIN + arpAmt0 * (ARP_RATE_MAX - ARP_RATE_MIN);
-      const arpDepth = offline.createGain(); arpDepth.gain.value = arpDepth0;
-      const arpGate  = offline.createGain(); arpGate.gain.value = 1 - arpDepth0;
-      arpLfo.connect(arpDepth); arpDepth.connect(arpGate.gain);
+      // ── LFO ─────────────────────────────────────────────────────────────────
+      const lfoActive0 = lfoWaveIdx > 0;
+      const lfoDepth0  = lfoActive0 ? LFO_DEPTH : 0;
+      const lfoOsc = offline.createOscillator();
+      lfoOsc.type = LFO_OSC_TYPES[lfoWaveIdx];
+      lfoOsc.frequency.value = LFO_RATE_MIN + (lfoRate / 100) * (LFO_RATE_MAX - LFO_RATE_MIN);
+      const lfoDepth = offline.createGain(); lfoDepth.gain.value = lfoDepth0;
+      const lfoGate  = offline.createGain(); lfoGate.gain.value = 1 - lfoDepth0;
+      lfoOsc.connect(lfoDepth); lfoDepth.connect(lfoGate.gain);
 
       // ── Pan + limiter ───────────────────────────────────────────────────────
       const panner = offline.createStereoPanner();
@@ -3327,9 +3330,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       limiter.ratio.value = 20; limiter.attack.value = 0.001; limiter.release.value = 0.15;
 
       // ── Wire it all together (same topology as initFxChain) ───────────────────
-      src.connect(eqL); eqL.connect(eqM); eqM.connect(eqH);
+      src.connect(volumeGain);
 
-      eqH.connect(revDry); eqH.connect(convolver);
+      volumeGain.connect(revDry); volumeGain.connect(convolver);
       convolver.connect(revWet);
       revDry.connect(revBus); revWet.connect(revBus);
 
@@ -3345,13 +3348,13 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       magDry.connect(magBus); magWet.connect(magBus);
 
       magBus.connect(panner);
-      panner.connect(arpGate);
-      arpGate.connect(limiter);
+      panner.connect(lfoGate);
+      lfoGate.connect(limiter);
       limiter.connect(offline.destination);
 
       src.start();
       flangerLfo.start();
-      arpLfo.start();
+      lfoOsc.start();
 
       const rendered = await offline.startRendering();
       const blob = audioBufferToWav(rendered);
@@ -3388,7 +3391,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     const src    = ctx.createBufferSource();
     src.buffer   = decoded;
     src.playbackRate.value = Math.abs(audio?.playbackRate ?? 1);
-    src.connect(eqLowRef.current ?? ctx.destination);
+    src.connect(volumeGainRef.current ?? ctx.destination);
 
     reverseSrcRef.current    = src;
     reverseStartPos.current  = audio ? Math.max(0, decoded.duration - offset) : 0;
@@ -3798,7 +3801,12 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       transition={{ type: 'spring', stiffness: 480, damping: 32, mass: 0.8, delay: 0.1,
                     opacity: { duration: 0.2, ease: 'easeOut', delay: 0.1 } }}
       style={{ width: '100vw', height: '100vh', background: 'var(--ui-bg)',
-               position: 'relative', fontFamily: FONT, overflow: 'hidden' }}
+               position: 'relative', fontFamily: FONT, overflow: 'hidden',
+               // FX mode: swap accent ↔ complement for every descendant element.
+               ...(fxFocus !== null ? {
+                 '--ui-fg':         'var(--ui-complement-base)',
+                 '--ui-complement': 'var(--ui-fg-base)',
+               } as CSSProperties : {}) }}
     >
       <FxModeOverlay active={fxOverlayMode !== null} text={fxOverlayMode === 'exit' ? S.fxModeExitText : S.fxModeText} />
       {/* ── Back-to-board button (top-left, appears after pill deep-link) ─── */}
@@ -4198,6 +4206,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                       hasMore={isCurrentPage && welcomePageIdx < welcomePagesRef.current.length - 1}
                       onDone={() => setTypedPages(s => s.has(i) ? s : new Set(s).add(i))}
                       inputMode={inputMode}
+                      skipSignal={isCurrentPage ? welcomeSkip : 0}
                     />
                   </motion.div>
                 );
@@ -5612,7 +5621,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                               if (fxDragMovedRef.current) { fxDragMovedRef.current = false; return; }
                               // First click selects; clicking the already-selected value
                               // steps it up (so toggles/cycles are fully mouse-driven).
-                              if (active) adjustFxValue(group, param, 1);
+                              if (active) { playUi('fxScroll'); adjustFxValue(group, param, 1); }
                               else focusHere();
                             }}
                             onWheel={e => {
@@ -5632,8 +5641,8 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                               const d = fxDragRef.current;
                               if (!d || d.group !== group || d.param !== param) return;
                               d.acc -= e.movementY; // dragging up (movementY < 0) → increase
-                              while (d.acc >= FX_DRAG_STEP_PX)  { adjustFxValue(group, param, 1);  d.acc -= FX_DRAG_STEP_PX; markDrag(group, param); }
-                              while (d.acc <= -FX_DRAG_STEP_PX) { adjustFxValue(group, param, -1); d.acc += FX_DRAG_STEP_PX; markDrag(group, param); }
+                              while (d.acc >= FX_DRAG_STEP_PX)  { playUi('fxScroll'); adjustFxValue(group, param, 1);  d.acc -= FX_DRAG_STEP_PX; markDrag(group, param); }
+                              while (d.acc <= -FX_DRAG_STEP_PX) { playUi('fxScroll'); adjustFxValue(group, param, -1); d.acc += FX_DRAG_STEP_PX; markDrag(group, param); }
                             }}
                             onPointerUp={e => {
                               try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
@@ -5663,8 +5672,6 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                           </FxBracket>
                         </div>
                       );
-                      // EQ value: just the dB number (no LO/MI/HI unit suffix).
-                      const eqCell = (val: number) => (val > 0 ? `+${val}` : val);
                       const cellStyle = { display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', gap: 6, minWidth: 0 };
                       const valuesRowStyle = { display: 'flex', alignItems: 'center', gap: 14, height: 19 };
                       return (
@@ -5690,13 +5697,11 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                             paddingRight: 4,
                             transformOrigin: 'left center',
                           }}>
-                          {/* EQUALIZZATORE */}
+                          {/* VOLUME */}
                           <div style={cellStyle}>
-                            {fxLabel('Equalizer', 0)}
+                            {fxLabel('Volume', 0)}
                             <div style={valuesRowStyle}>
-                              {fxValue(0, 0, eqCell(eqLow),  eqLow  === 0)}
-                              {fxValue(0, 1, eqCell(eqMid),  eqMid  === 0)}
-                              {fxValue(0, 2, eqCell(eqHigh), eqHigh === 0)}
+                              {fxValue(0, 0, `${volume}%`, volume === 100)}
                             </div>
                           </div>
 
@@ -5737,12 +5742,12 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                             </div>
                           </div>
 
-                          {/* ARPEGGIATORE — SI/NO (on/off) + rate */}
+                          {/* LFO — waveform type + rate */}
                           <div style={cellStyle}>
-                            {fxLabel('Arpeggiator', 5)}
+                            {fxLabel('LFO', 5)}
                             <div style={valuesRowStyle}>
-                              {fxValue(5, 0, tLabel(arpAmount > 0 ? 'YES' : 'NO', lang), false)}
-                              {fxValue(5, 1, arpAmount, arpAmount === 0)}
+                              {fxValue(5, 0, tLabel(LFO_WAVES[lfoWaveIdx], lang), lfoWaveIdx === 0)}
+                              {fxValue(5, 1, lfoRate, lfoWaveIdx === 0)}
                             </div>
                           </div>
                         </motion.div>

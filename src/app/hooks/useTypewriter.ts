@@ -14,12 +14,17 @@ export function useTypewriter(
   startDelay   = 0,    // ms before the first character appears
   onComplete?: () => void,
   soundEvery   = 1,    // play a sound every N non-whitespace characters (1 = every letter)
+  skipSignal   = 0,    // increment to instantly reveal the full text (e.g. on Enter)
+  playSound    = playKeyboardSound, // sound fired for every revealed character
 ): string {
   const [count, setCount] = useState(0);
 
   // Keep onComplete always fresh — it's called asynchronously inside the timeout chain
   const onCompleteRef = useRef(onComplete);
   useEffect(() => { onCompleteRef.current = onComplete; });
+
+  // Lets the skipSignal effect below jump straight to the end of the current run.
+  const skipRef = useRef(() => {});
 
   useEffect(() => {
     setCount(0);
@@ -28,6 +33,15 @@ export function useTypewriter(
     let i               = 0;
     let charsSinceSound = 0;   // counts non-whitespace chars since last sound
     let tid: ReturnType<typeof setTimeout>;
+    let skipped         = false;
+
+    skipRef.current = () => {
+      if (skipped) return;
+      skipped = true;
+      clearTimeout(tid);
+      setCount(text.length);
+      onCompleteRef.current?.();
+    };
 
     function next() {
       i++;
@@ -37,7 +51,7 @@ export function useTypewriter(
       if (char && char.trim()) {
         charsSinceSound++;
         if (charsSinceSound >= soundEvery) {
-          playKeyboardSound();
+          playSound();
           charsSinceSound = 0;
         }
       }
@@ -54,7 +68,12 @@ export function useTypewriter(
     // First character appears after startDelay + one step
     tid = setTimeout(next, startDelay + speed);
     return () => clearTimeout(tid);
-  }, [text, speed, startDelay, soundEvery]); // re-run when any of these change
+  }, [text, speed, startDelay, soundEvery, playSound]); // re-run when any of these change
+
+  // Skip-to-end on demand (e.g. a second Enter press while still typing).
+  useEffect(() => {
+    if (skipSignal > 0) skipRef.current();
+  }, [skipSignal]);
 
   return text.slice(0, count);
 }

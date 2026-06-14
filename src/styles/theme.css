@@ -9,6 +9,11 @@
   --ui-bg:          #fff;
   --ui-preview-bg:  #ededed;
   --icon-filter:    brightness(0);
+  /* Live aliases of the current accent/complement — used to swap the two
+     colours for all elements inside .fx-mode (see Home.tsx) without creating
+     a circular var() reference. */
+  --ui-fg-base:         var(--ui-fg);
+  --ui-complement-base: var(--ui-complement, var(--ui-fg));
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;
   --card-foreground: oklch(0.145 0 0);

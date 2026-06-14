@@ -110,12 +110,12 @@ function PressStartText({ lang, inputMode }: { lang: Lang; inputMode: InputMode 
       {prefixText}
       {showSuffix && (
         inputMode === 'controller' ? (
-          <Icon name="start" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 4px' }} />
+          <Icon name="start" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 0.25em' }} />
         ) : (
           <>
-            <Icon name="key-spacebar" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 4px' }} />
+            <Icon name="key-spacebar" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 0.25em' }} />
             {S.pressOr}
-            <Icon name="key-enter" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 4px' }} />
+            <Icon name="key-enter" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 0.25em' }} />
           </>
         )
       )}
