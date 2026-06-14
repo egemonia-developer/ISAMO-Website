@@ -709,7 +709,7 @@ export default function App() {
               }}
             >
               <Icon
-                name={inputMode === 'controller' ? 'controller-X' : 'key-m'}
+                name={inputMode === 'controller' ? 'select' : 'key-m'}
                 size={19}
                 color="var(--ui-complement)"
               />

@@ -3713,9 +3713,13 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
         lastMuteConfirmW.current = focusedW;
       }
     },
-    // B (short press) → open the search bar (mirrors the F key). Back navigation
-    // lives on D-pad Left / LB; holding B still returns to the board (onBackHeld).
+    // B (short press): in FX mode → exit effects (mirrors Esc, matches the hint
+    // icon); otherwise → open the search bar (mirrors the F key). General back
+    // navigation lives on D-pad Left / LB; holding B still returns to the board.
     onBack: () => {
+      if (isLibraryPanel && focusedW !== null && fxFocus !== null) {
+        setFxFocus(null); setFxParam(0); playUi('undo'); return;
+      }
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F', bubbles: true }));
     },
     onLB: () => {
@@ -4112,7 +4116,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
               pointerEvents: 'auto',
             }}
           >
-            <Icon name={inputMode === 'controller' ? 'select' : 'key-f'} size={FS_SMALL} color="var(--ui-complement)" />
+            <Icon name={inputMode === 'controller' ? 'controller-B' : 'key-f'} size={FS_SMALL} color="var(--ui-complement)" />
             <input
               ref={playerSearchInputRef}
               value={playerSearch}
@@ -4154,7 +4158,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
               pointerEvents: 'auto',
             }}
           >
-            <Icon name={inputMode === 'controller' ? 'select' : 'key-f'} size={FS_SMALL} color="var(--ui-complement)" style={{ opacity: 0.5 }} />
+            <Icon name={inputMode === 'controller' ? 'controller-B' : 'key-f'} size={FS_SMALL} color="var(--ui-complement)" style={{ opacity: 0.5 }} />
             <input
               ref={artistSearchInputRef}
               value={artistSearch}
@@ -5053,7 +5057,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
               zIndex: 2,
             }}>
               {/* Search — hint icon + input */}
-              <Icon name={inputMode === 'controller' ? 'select' : 'key-f'} size={FS_SMALL} color="var(--ui-complement)" />
+              <Icon name={inputMode === 'controller' ? 'controller-B' : 'key-f'} size={FS_SMALL} color="var(--ui-complement)" />
               <input
                 ref={searchInputRef}
                 value={boardSearch}
