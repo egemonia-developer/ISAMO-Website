@@ -118,7 +118,7 @@ const EN: LangStrings = {
     Volume:       'Adjusts the overall playback level of the sound, from silent to boosted.',
     Reverb:       'Adds a sense of space, as if the sound were playing in a room or hall.',
     'Left/Right': 'Moves the sound between the left and right speakers.',
-    Delay:        'Repeats the sound in echoes, spaced out over time.',
+    Spectral:     'Spreads echoes across the frequency spectrum, for a diffuse, shimmering repeat.',
     Flanger:      'Sweeps the sound through a moving comb-filter, for a jet-like swooshing effect.',
     LFO:          'Modulates the volume in a rhythmic wave — adjust its speed and waveform shape.',
   },
@@ -222,7 +222,7 @@ const IT: LangStrings = {
     Volume:       'Regola il livello generale di riproduzione del suono, dal silenzio al volume amplificato.',
     Reverb:       'Aggiunge un senso di spazio, come se il suono risuonasse in una stanza o in una sala.',
     'Left/Right': 'Sposta il suono tra l\'altoparlante sinistro e quello destro.',
-    Delay:        'Ripete il suono in eco, distanziate nel tempo.',
+    Spectral:     'Distribuisce gli echi sullo spettro delle frequenze, per una ripetizione diffusa e scintillante.',
     Flanger:      'Fa scorrere il suono attraverso un filtro a pettine in movimento, per un effetto "swoosh" simile a un jet.',
     LFO:          'Modula il volume in un\'onda ritmica: regola velocità e forma d\'onda.',
   },
@@ -329,7 +329,7 @@ const FR: LangStrings = {
     Volume:       "Ajuste le niveau de lecture global du son, du silence à un volume amplifié.",
     Reverb:       "Ajoute une sensation d'espace, comme si le son résonnait dans une pièce ou une salle.",
     'Left/Right': "Déplace le son entre le haut-parleur gauche et le droit.",
-    Delay:        "Répète le son en échos, espacés dans le temps.",
+    Spectral:     "Répartit les échos sur le spectre des fréquences, pour une répétition diffuse et chatoyante.",
     Flanger:      "Fait balayer le son par un filtre en peigne mouvant, pour un effet de souffle façon réacteur.",
     LFO:          "Module le volume selon une onde rythmique : réglez sa vitesse et sa forme d'onde.",
   },
@@ -434,7 +434,7 @@ const JP: LangStrings = {
     Volume:       '音の全体的な再生レベルを調整します。無音から増幅まで。',
     Reverb:       '部屋やホールで鳴っているかのような空間の響きを加えます。',
     'Left/Right': '音を左右のスピーカーの間で移動させます。',
-    Delay:        '音を時間差のあるエコーとして繰り返します。',
+    Spectral:     '音の反響を周波数スペクトル全体に広げ、拡散したきらめくような繰り返しを生み出します。',
     Flanger:      '動くくし形フィルターを通して音を揺らし、ジェット機のようなシュワッという効果を生みます。',
     LFO:          '音量をリズミカルな波で変化させます。速さと波形を調整できます。',
   },
@@ -512,10 +512,8 @@ const NAV_LABELS: Partial<Record<Lang, Record<string, string>>> = {
     // Library Z (axis sublevels)
     'X-Axis': 'X軸', 'Y-Axis': 'Y軸', 'Z-Axis': 'Z軸',
     // FX panel — group labels
-    Volume: '音量', Reverb: 'リバーブ', 'Left/Right': '左/右', Delay: 'ディレイ',
+    Volume: '音量', Reverb: 'リバーブ', 'Left/Right': '左/右', Spectral: 'スペクトル',
     Flanger: 'フランジャー',
-    // FX panel — delay division (qualitative)
-    LITTLE: '少し', MEDIUM: '普通', 'A LOT': '多い', MAX: '最大',
   },
   it: {
     Library: 'Libreria', Settings: 'Impostazioni', Artists: 'Artisti',
@@ -532,8 +530,6 @@ const NAV_LABELS: Partial<Record<Lang, Record<string, string>>> = {
     'X-Axis': 'Asse X', 'Y-Axis': 'Asse Y', 'Z-Axis': 'Asse Z',
     // FX panel — group labels
     Volume: 'Volume', Reverb: 'Riverbero', 'Left/Right': 'Sinistra/Destra',
-    // FX panel — delay division (qualitative)
-    LITTLE: 'POCO', MEDIUM: 'MEDIO', 'A LOT': 'TANTO',
   },
   fr: {
     Library: 'Bibliothèque', Settings: 'Réglages', Artists: 'Artistes',
@@ -550,8 +546,6 @@ const NAV_LABELS: Partial<Record<Lang, Record<string, string>>> = {
     'X-Axis': 'Axe X', 'Y-Axis': 'Axe Y', 'Z-Axis': 'Axe Z',
     // FX panel — group labels
     Volume: 'Volume', Reverb: 'Réverbération', 'Left/Right': 'Gauche/Droite',
-    // FX panel — delay division (qualitative)
-    LITTLE: 'PEU', MEDIUM: 'MID', 'A LOT': 'WOW',
   },
 };
 
