@@ -189,30 +189,15 @@ const SAMPHA_SOUNDS   = makeSounds('A.SM', 9, n => `Sampha-${n}`);
 
 // ── Board / splash gallery clips — title / designer / country left blank to fill ──
 export const INITIAL_BOARD_VIDEOS = [
-  { id: '1',  src: '/refs/13-1.mp4',                       label: '', author: '', country: '', year: 2025, tags: ['B.A01']  },
-  { id: '2',  src: '/refs/alessandro-vogel-01-sound.mp4',  label: '', author: '', country: '', year: 2025, tags: ['B.A02'] },
-  { id: '3',  src: '/refs/alessandro-vogel-01.mp4',        label: '', author: '', country: '', year: 2025, tags: ['B.A03'] },
-  { id: '4',  src: '/refs/alessandro-vogel-02.mp4',        label: '', author: '', country: '', year: 2025, tags: ['B.A04'] },
-  { id: '5',  src: '/refs/alessandro-vogel-03.mp4',        label: '', author: '', country: '', year: 2025, tags: ['B.A05'] },
-  { id: '6',  src: '/refs/alessandro-vogel-04.mp4',        label: '', author: '', country: '', year: 2025, tags: ['B.A06'] },
-  { id: '7',  src: '/refs/diplomes-1.mp4',                 label: '', author: '', country: '', year: 2025, tags: ['B.A07'] },
-  { id: '8',  src: '/refs/diplomes-111.mp4',               label: '', author: '', country: '', year: 2025, tags: ['B.V01'] },
-  { id: '9',  src: '/refs/diplomes-1_1.mp4',               label: '', author: '', country: '', year: 2025, tags: ['B.V02'] },
-  { id: '10', src: '/refs/diplomes-1_2.mp4',               label: '', author: '', country: '', year: 2025, tags: ['B.V03'] },
-  { id: '11', src: '/refs/diplomes-1_3.mp4',               label: '', author: '', country: '', year: 2025, tags: ['C.CT01'] },
-  { id: '12', src: '/refs/diplomes-1_4.mp4',               label: '', author: '', country: '', year: 2025, tags: ['C.CT02'] },
-  { id: '13', src: '/refs/diplomes-1_5.mp4',               label: '', author: '', country: '', year: 2025, tags: ['C.CT03'] },
-  { id: '14', src: '/refs/diplomes-1_6.mp4',               label: '', author: '', country: '', year: 2025, tags: ['C.ZM01'] },
-  { id: '15', src: '/refs/diplomes-1_7.mp4',               label: '', author: '', country: '', year: 2025, tags: ['C.ZM02'] },
-  { id: '16', src: '/refs/diplomes-1_8.mp4',               label: '', author: '', country: '', year: 2025, tags: ['E.GL01'] },
-  { id: '17', src: '/refs/ecal-1.mp4',                     label: '', author: '', country: '', year: 2025, tags: ['E.GL02'] },
-  { id: '18', src: '/refs/ecal-2.mp4',                     label: '', author: '', country: '', year: 2025, tags: ['E.GL03'] },
-  { id: '19', src: '/refs/raffinerie.mp4',                 label: '', author: '', country: '', year: 2025, tags: ['E.GL04'] },
-  { id: '20', src: '/refs/video-1.mp4',                    label: '', author: '', country: '', year: 2025, tags: ['E.GL05'] },
-  { id: '21', src: '/refs/video-2.mp4',                    label: '', author: '', country: '', year: 2025, tags: ['E.ST01'] },
-  { id: '22', src: '/refs/video-3.mp4',                    label: '', author: '', country: '', year: 2025, tags: ['E.ST02'] },
-  { id: '23', src: '/refs/wf22_2-1.mp4',                   label: '', author: '', country: '', year: 2025, tags: ['M.R01']  },
-  { id: '24', src: '/refs/zhdk.mp4',                       label: '', author: '', country: '', year: 2025, tags: ['M.R02']  },
+  { id: '1', src: '/refs/diplomes-1_9.mp4',              label: '', author: '', country: '', year: 2025, tags: [] },
+  { id: '2', src: '/refs/diplomes-1.mp4',                label: '', author: '', country: '', year: 2025, tags: ['B.A07'] },
+  { id: '3', src: '/refs/alessandro-vogel-01-sound.mp4', label: '', author: '', country: '', year: 2025, tags: ['B.A02'] },
+  { id: '4', src: '/refs/video-1.mp4',                   label: '', author: '', country: '', year: 2025, tags: ['E.GL05'] },
+  { id: '5', src: '/refs/video-2.mp4',                   label: '', author: '', country: '', year: 2025, tags: ['E.ST01'] },
+  { id: '6', src: '/refs/video-3.mp4',                   label: '', author: '', country: '', year: 2025, tags: ['E.ST02'] },
+  { id: '7', src: '/refs/carolina.mp4',                  label: '', author: '', country: '', year: 2025, tags: [] },
+  { id: '8', src: '/refs/defile.mp4',                    label: '', author: '', country: '', year: 2025, tags: [] },
+  { id: '9', src: '/refs/stanislay.mp4',                 label: '', author: '', country: '', year: 2025, tags: [] },
 ];
 
 // Board search match — shared by render filter + keyboard navigation
@@ -500,9 +485,20 @@ function formatDuration(sec: number): string {
 }
 
 // ── FX constants ──────────────────────────────────────────────────────────────
-const DELAY_DIVS       = ['1/8', '1/4', '1/2', '1'] as const;
-const DELAY_DIV_LABELS = ['LITTLE', 'MEDIUM', 'A LOT', 'MAX'] as const; // qualitative display for DELAY_DIVS (translated via tLabel)
-const DELAY_TIMES      = [0.25, 0.5, 1.0, 2.0]; // seconds (at ~120 bpm)
+// ── Spectral Time — multi-band delay network (approximates Ableton's Spectral Time) ──
+// Each band is its own band-pass-filtered delay line with feedback; per-band time
+// offsets ("spray") spread the repeats across the spectrum for a diffuse, smeared
+// echo rather than a single clean tap. Settings mirror the reference patch (Feedback
+// 65%, Spray ±204ms, Tilt/Shift/Mask/Stereo at 0) — only Time and Dry/Wet are exposed.
+const SPECTRAL_BAND_FREQS   = [110, 320, 800, 1800, 4000, 9000]; // Hz, band-pass centres
+const SPECTRAL_BAND_Q       = 1.1;
+const SPECTRAL_SPRAY_MS     = 204;  // ms, max per-band time offset from the base Time
+const SPECTRAL_FEEDBACK     = 0.65; // per-band feedback amount
+const SPECTRAL_TIME_MIN     = 100;  // ms
+const SPECTRAL_TIME_MAX     = 2000; // ms
+const SPECTRAL_TIME_STEP    = 20;   // ms per adjustment step
+const SPECTRAL_TIME_DEFAULT = 880;  // ms
+const SPECTRAL_MAX_DELAY    = (SPECTRAL_TIME_MAX + SPECTRAL_SPRAY_MS) / 1000 + 0.05; // s, DelayNode buffer size
 const MAGIC_MAX_V      = 7;                      // Flanger: rate levels (1..7)
 const FLANGER_RATE_MIN = 0.05;                   // Hz, sweep speed at rate level 1
 const FLANGER_RATE_MAX = 0.6;                    // Hz, sweep speed at rate level MAGIC_MAX_V
@@ -514,13 +510,13 @@ const LFO_RATE_MIN = 0.5; // Hz, rate value = 0
 const LFO_RATE_MAX = 12;  // Hz, rate value = 100
 const LFO_DEPTH    = 0.5; // gain-gate modulation depth while a waveform is selected
 
-// ── Effects panel — 2×3 grid, row-major: [VOLUME, REVERB, PAN] / [DELAY, FLANGER, LFO] ─
-const FX_VALUE_W = 100; // fixed bracket slot per value cell — sized to fit the longest delay-division word across all languages ("MEDIUM")
+// ── Effects panel — 2×3 grid, row-major: [VOLUME, REVERB, PAN] / [SPECTRAL, FLANGER, LFO] ─
+const FX_VALUE_W = 100; // fixed bracket slot per value cell
 const FX_DRAG_STEP_PX = 7; // vertical mouse travel per value step when click-dragging a value
 const FX_PARAM_COUNT = [1, 1, 1, 2, 2, 2] as const; // sub-values per group
 // Canonical (English) group labels, in the same row-major order as FX_PARAM_COUNT —
 // used both for the on-screen labels (via tLabel) and for the hover explanations.
-const FX_GROUP_LABELS = ['Volume', 'Reverb', 'Left/Right', 'Delay', 'Flanger', 'LFO'] as const;
+const FX_GROUP_LABELS = ['Volume', 'Reverb', 'Left/Right', 'Spectral', 'Flanger', 'LFO'] as const;
 const VOLUME_MIN = 0;   // %
 const VOLUME_MAX = 200; // %
 // Flat row-major sequence of every (group, param) pair — navigation mode is
@@ -543,6 +539,61 @@ function makeSyntheticIR(ctx: BaseAudioContext, duration = 2.2, decay = 2.0): Au
       ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
   }
   return buf;
+}
+
+interface SpectralTimeNodes {
+  input:      GainNode;
+  output:     GainNode;
+  dryGain:    GainNode;
+  wetGain:    GainNode;
+  delayNodes: DelayNode[];
+}
+
+/** Per-band delay time (s) for the spectral-time network: base Time spread across
+ *  ±SPECTRAL_SPRAY_MS, one offset per band, low → high frequency. */
+function spectralDelaySec(timeMs: number, bandIdx: number, bandCount: number): number {
+  const offsetMs = -SPECTRAL_SPRAY_MS + (2 * SPECTRAL_SPRAY_MS * bandIdx) / (bandCount - 1);
+  return Math.max(0.005, (timeMs + offsetMs) / 1000);
+}
+
+/** Builds the Spectral Time network: one band-pass-filtered delay line per
+ *  SPECTRAL_BAND_FREQS entry, each with its own feedback loop, summed into a wet
+ *  bus and mixed with a dry pass-through via dryGain/wetGain. Works on both
+ *  AudioContext and OfflineAudioContext. */
+function createSpectralTime(ctx: BaseAudioContext, timeMs: number, wet: number): SpectralTimeNodes {
+  const input   = ctx.createGain();
+  const output  = ctx.createGain();
+  const dryGain = ctx.createGain(); dryGain.gain.value = 1 - wet;
+  const wetGain = ctx.createGain(); wetGain.gain.value = wet;
+
+  input.connect(dryGain); dryGain.connect(output);
+  wetGain.connect(output);
+
+  const delayNodes: DelayNode[] = SPECTRAL_BAND_FREQS.map((freq, i) => {
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = SPECTRAL_BAND_Q;
+
+    const delay = ctx.createDelay(SPECTRAL_MAX_DELAY);
+    delay.delayTime.value = spectralDelaySec(timeMs, i, SPECTRAL_BAND_FREQS.length);
+
+    const feedback = ctx.createGain(); feedback.gain.value = SPECTRAL_FEEDBACK;
+
+    input.connect(bp);
+    bp.connect(delay);
+    delay.connect(feedback); feedback.connect(bp); // band-limited feedback loop
+    delay.connect(wetGain);
+
+    return delay;
+  });
+
+  return { input, output, dryGain, wetGain, delayNodes };
+}
+
+/** Re-spreads all band delay times around a new base Time (ms). */
+function setSpectralTime(nodes: SpectralTimeNodes, timeMs: number) {
+  nodes.delayNodes.forEach((d, i) => {
+    d.delayTime.value = spectralDelaySec(timeMs, i, nodes.delayNodes.length);
+  });
 }
 
 const logoSpring = { type: 'spring' as const, stiffness: 220, damping: 26, mass: 1 };
@@ -1515,11 +1566,11 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     speak(randomPreview(), { force: true, indicateLoading: true });   // …then preview with the new params
   };
 
-  // ── FX state (Volume + Reverb + Delay + Magic) ──────────────────────────────
+  // ── FX state (Volume + Reverb + Spectral Time + Magic) ──────────────────────
   const [volume,      setVolume]      = useState(100);  // %  0..200 (100 = unity gain)
   const [reverbWet,   setReverbWet]   = useState(0);    // 0..1
-  const [delayWet,    setDelayWet]    = useState(0);    // 0..1
-  const [delayDivIdx, setDelayDivIdx] = useState(2);    // default = '1/2' (1.0 s)
+  const [spectralWet,    setSpectralWet]    = useState(0);                       // 0..1 (Dry/Wet)
+  const [spectralTimeMs, setSpectralTimeMs] = useState(SPECTRAL_TIME_DEFAULT);    // ms (Time)
   const [magicWet,    setMagicWet]    = useState(0);    // 0..1
   const [magicVoices, setMagicVoices] = useState(4);   // 1..7 (Hyper voice count)
   const [pan,         setPan]         = useState(0);    // -1 (L) .. 0 (C) .. +1 (R)
@@ -1546,9 +1597,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
   const volumeGainRef = useRef<GainNode | null>(null);
   const reverbDryRef = useRef<GainNode | null>(null);
   const reverbWetRef = useRef<GainNode | null>(null);
-  const delayNodeRef = useRef<DelayNode | null>(null);
-  const delayDryRef  = useRef<GainNode | null>(null);
-  const delayWetRef  = useRef<GainNode | null>(null);
+  const spectralNodesRef = useRef<SpectralTimeNodes | null>(null);
   const magicDryRef       = useRef<GainNode | null>(null);
   const magicWetRef       = useRef<GainNode | null>(null);
   const flangerDelayRef   = useRef<DelayNode | null>(null);
@@ -1593,12 +1642,13 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     if (reverbWetRef.current) reverbWetRef.current.gain.value = reverbWet;
   }, [reverbWet]);
   useEffect(() => {
-    if (delayDryRef.current) delayDryRef.current.gain.value = 1 - delayWet;
-    if (delayWetRef.current) delayWetRef.current.gain.value = delayWet;
-  }, [delayWet]);
+    const s = spectralNodesRef.current;
+    if (s) { s.dryGain.gain.value = 1 - spectralWet; s.wetGain.gain.value = spectralWet; }
+  }, [spectralWet]);
   useEffect(() => {
-    if (delayNodeRef.current) delayNodeRef.current.delayTime.value = DELAY_TIMES[delayDivIdx];
-  }, [delayDivIdx]);
+    const s = spectralNodesRef.current;
+    if (s) setSpectralTime(s, spectralTimeMs);
+  }, [spectralTimeMs]);
   useEffect(() => {
     if (magicDryRef.current) magicDryRef.current.gain.value = 1 - magicWet;
     if (magicWetRef.current) magicWetRef.current.gain.value = magicWet;
@@ -1706,9 +1756,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       case 2: // SINISTRA/DESTRA — pan -1..1, step 0.1
         setPan(v => Math.max(-1, Math.min(1, parseFloat((v + dir * 0.1).toFixed(2)))));
         break;
-      case 3: // DELAY — wet 0..1 (param 0), divisione qualitativa 0..3 (param 1)
-        if (p === 0) setDelayWet(v => Math.max(0, Math.min(1, parseFloat((v + dir * 0.05).toFixed(2)))));
-        else setDelayDivIdx(v => (v + dir + DELAY_DIVS.length) % DELAY_DIVS.length);
+      case 3: // SPECTRAL TIME — dry/wet 0..1 (param 0), time 100..2000ms step 20 (param 1)
+        if (p === 0) setSpectralWet(v => Math.max(0, Math.min(1, parseFloat((v + dir * 0.05).toFixed(2)))));
+        else setSpectralTimeMs(v => Math.max(SPECTRAL_TIME_MIN, Math.min(SPECTRAL_TIME_MAX, v + dir * SPECTRAL_TIME_STEP)));
         break;
       case 4: // FLANGER — wet 0..1 (param 0), velocità 1..MAGIC_MAX_V (param 1)
         if (p === 0) setMagicWet(v => Math.max(0, Math.min(1, parseFloat((v + dir * 0.05).toFixed(2)))));
@@ -2899,7 +2949,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
 
   // ── FX chain init (lazy — called on first play inside a user gesture) ────────
   // Creates an AudioContext, wires the MediaElementSourceNode through
-  // EQ → Reverb → Delay → Magic → destination. Guard prevents double-init.
+  // EQ → Reverb → Spectral Time → Magic → destination. Guard prevents double-init.
   // ── Audio progress RAF — reads currentTime every frame, writes directly to DOM ─
   const startAudioRaf = () => {
     cancelAnimationFrame(audioRafRef.current);
@@ -2988,14 +3038,10 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       const revBus = ctx.createGain();
       reverbDryRef.current = revDry; reverbWetRef.current = revWet;
 
-      // ── Delay (with gentle feedback) ───────────────────────────────────────
-      const delay = ctx.createDelay(4.0);
-      delay.delayTime.value = DELAY_TIMES[delayDivIdx];
-      const delFB  = ctx.createGain(); delFB.gain.value = 0.32;
-      const delDry = ctx.createGain(); delDry.gain.value = 1 - delayWet;
-      const delWet = ctx.createGain(); delWet.gain.value = delayWet;
+      // ── Spectral Time (multi-band delay network) ───────────────────────────
+      const spectral = createSpectralTime(ctx, spectralTimeMs, spectralWet);
+      spectralNodesRef.current = spectral;
       const delBus = ctx.createGain();
-      delayNodeRef.current = delay; delayDryRef.current = delDry; delayWetRef.current = delWet;
 
       // ── Flanger — single modulated delay line + feedback ────────────────────
       // Classic jet/swoosh: a short delay (~5 ms) swept by a slow sine LFO, with
@@ -3032,11 +3078,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       convolver.connect(revWet);
       revDry.connect(revBus); revWet.connect(revBus);
 
-      // revBus → Delay (dry + wet w/ feedback → delBus)
-      revBus.connect(delDry); revBus.connect(delay);
-      delay.connect(delFB); delFB.connect(delay); // feedback loop
-      delay.connect(delWet);
-      delDry.connect(delBus); delWet.connect(delBus);
+      // revBus → Spectral Time → delBus
+      revBus.connect(spectral.input);
+      spectral.output.connect(delBus);
 
       // delBus → Flanger (dry + modulated-delay-with-feedback → magBus)
       delBus.connect(magDry);
@@ -3259,7 +3303,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
 
   // ── Download — bakes the current FX chain into the file, if any effect is active ──
   // Mirrors the live graph built in initFxChain(), but rendered offline (no realtime
-  // playback) so the export reflects EQ / Reverb / Pan / Delay / Flanger / LFO / Pitch
+  // playback) so the export reflects EQ / Reverb / Pan / Spectral Time / Flanger / LFO / Pitch
   // / Reverse exactly as currently set. With everything at its default (neutral) value,
   // downloads the original MP3 untouched.
   const downloadSound = async () => {
@@ -3268,7 +3312,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     const rate = playbackRate || 1;
     const effectsActive =
       volume !== 100 ||
-      reverbWet > 0 || delayWet > 0 || magicWet > 0 ||
+      reverbWet > 0 || spectralWet > 0 || magicWet > 0 ||
       lfoWaveIdx > 0 || pan !== 0 || rate !== 1 || isReversed;
 
     if (!effectsActive) { downloadOriginal(); return; }
@@ -3305,12 +3349,8 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       const revWet = offline.createGain(); revWet.gain.value = reverbWet;
       const revBus = offline.createGain();
 
-      // ── Delay ───────────────────────────────────────────────────────────────
-      const delay = offline.createDelay(4.0);
-      delay.delayTime.value = DELAY_TIMES[delayDivIdx];
-      const delFB  = offline.createGain(); delFB.gain.value = 0.32;
-      const delDry = offline.createGain(); delDry.gain.value = 1 - delayWet;
-      const delWet = offline.createGain(); delWet.gain.value = delayWet;
+      // ── Spectral Time (multi-band delay network) ───────────────────────────
+      const spectral = createSpectralTime(offline, spectralTimeMs, spectralWet);
       const delBus = offline.createGain();
 
       // ── Flanger ─────────────────────────────────────────────────────────────
@@ -3351,10 +3391,8 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       convolver.connect(revWet);
       revDry.connect(revBus); revWet.connect(revBus);
 
-      revBus.connect(delDry); revBus.connect(delay);
-      delay.connect(delFB); delFB.connect(delay);
-      delay.connect(delWet);
-      delDry.connect(delBus); delWet.connect(delBus);
+      revBus.connect(spectral.input);
+      spectral.output.connect(delBus);
 
       delBus.connect(magDry);
       delBus.connect(flangerDelay);
@@ -5743,12 +5781,12 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                             </div>
                           </div>
 
-                          {/* DELAY */}
+                          {/* SPECTRAL TIME */}
                           <div style={cellStyle}>
-                            {fxLabel('Delay', 3)}
+                            {fxLabel('Spectral', 3)}
                             <div style={valuesRowStyle}>
-                              {fxValue(3, 0, Math.round(delayWet * 100), delayWet <= 0.01)}
-                              {fxValue(3, 1, tLabel(DELAY_DIV_LABELS[delayDivIdx], lang), delayWet <= 0.01)}
+                              {fxValue(3, 0, Math.round(spectralWet * 100), spectralWet <= 0.01)}
+                              {fxValue(3, 1, `${spectralTimeMs}ms`, spectralWet <= 0.01)}
                             </div>
                           </div>
 
