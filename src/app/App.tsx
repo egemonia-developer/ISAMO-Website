@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { WakeScreen } from './WakeScreen';
 import { LoadingScreen } from './LoadingScreen';
 import { SplashScreen } from './SplashScreen';
 import { Home, applyColorVars } from './Home';
@@ -15,7 +16,7 @@ import { preloadUiSounds, playUi, setUiMuted } from './audio/uiSounds';
 import { preloadKeyboardSounds, setKeyboardSoundMuted } from './audio/keyboardSounds';
 import { getCtx } from './audio/audioContext';
 
-type Screen    = 'loading' | 'splash' | 'home';
+type Screen    = 'wake' | 'loading' | 'splash' | 'home';
 export type InputMode = 'keyboard' | 'controller';
 
 const CURSOR_SIZE    = 20;
@@ -216,7 +217,7 @@ const LANG_SHORT: Record<Lang, string> = { en: 'EN', it: 'IT', fr: 'FR', jp: 'JP
 const LANG_CYCLE: Lang[] = ['it', 'fr', 'en', 'jp'];
 
 export default function App() {
-  const [screen,        setScreen]        = useState<Screen>('loading');
+  const [screen,        setScreen]        = useState<Screen>('wake');
   const [showIntro,     setShowIntro]     = useState(false);
   const [inputMode,     setInputMode]     = useState<InputMode>('keyboard');
   const [cursorVisible, setCursorVisible] = useState(false);
@@ -276,7 +277,7 @@ export default function App() {
   const idleTimerRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevHoverElRef   = useRef<Element | null>(null);
   const inputModeRef     = useRef<InputMode>('keyboard');
-  const screenRef        = useRef<Screen>('loading');
+  const screenRef        = useRef<Screen>('wake');
   // ── Controller scrub drag state ───────────────────────────────────────────
   const aHeldRef         = useRef(false);           // true while A is physically held
   const scrubElRef       = useRef<Element | null>(null); // scrubber element being dragged
@@ -553,6 +554,13 @@ export default function App() {
   return (
     <>
       <AnimatePresence mode="sync">
+        {screen === 'wake' && (
+          <WakeScreen
+            key="wake"
+            onWake={() => setScreen('loading')}
+            lang={lang}
+          />
+        )}
         {screen === 'loading' && (
           <LoadingScreen
             key="loading"
@@ -590,7 +598,7 @@ export default function App() {
       {/* ── Persistent ISAMO logo — the SAME element on splash and home. It never
              re-mounts and never animates (no fade-in, no fade-out, no slide); it is
              simply always present, anchoring the splash → home transition. ──────── */}
-      {screen !== 'loading' && (
+      {screen !== 'loading' && screen !== 'wake' && (
         <motion.div
           aria-label="ISAMO"
           initial={{ scale: 0, opacity: 0 }}
@@ -625,7 +633,7 @@ export default function App() {
       )}
 
       {/* ── ISAMO acronym reveal on logo hover — above every element (App level) ── */}
-      {screen !== 'loading' && <WordReveal active={logoHovered} lang={lang} />}
+      {screen !== 'loading' && screen !== 'wake' && <WordReveal active={logoHovered} lang={lang} />}
 
       {/* ── Global loading-dots overlay (e.g. ometto warming up speech) ── */}
       <LoadingDots active={ttsLoading} />
@@ -669,7 +677,7 @@ export default function App() {
 
       {/* ── Bottom-left controls: global mute + language toggle ─────────────── */}
       <AnimatePresence>
-        {screen !== 'loading' && (
+        {screen !== 'loading' && screen !== 'wake' && (
           <motion.div
             key="bottom-controls"
             initial={{ opacity: 0 }}

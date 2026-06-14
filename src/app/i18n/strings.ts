@@ -6,6 +6,10 @@ export type Lang = 'en' | 'it' | 'fr' | 'jp';
 export const LANGS: Lang[] = ['en', 'it', 'fr', 'jp'];
 
 export interface LangStrings {
+  // ── WakeScreen (pre-loading audio-unlock gate) ───────────────────────────────
+  wakePrefix: string;            // "Press " / "Premi " — text before the ⏎ glyph
+  wakeSuffix: string;            // " to wake (ISAMO !)" — text after the ⏎ glyph
+
   // ── SplashScreen ────────────────────────────────────────────────────────────
   pressPrefix: string;           // "Press " / "Premi " / "Appuyez "
   pressOr: string;               // " or " / " o " / " ou "
@@ -56,6 +60,8 @@ export interface LangStrings {
 
 // ─────────────────────────────────────────────────────────────────────────────
 const EN: LangStrings = {
+  wakePrefix:   'Press ',
+  wakeSuffix:   ' to wake (ISAMO !)',
   pressPrefix:  'Press ',
   pressOr:      ' or ',
   pressSuffix:  ' to start',
@@ -157,6 +163,8 @@ const EN: LangStrings = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 const IT: LangStrings = {
+  wakePrefix:   'Premi ',
+  wakeSuffix:   ' per risvegliare (ISAMO !)',
   pressPrefix:  'Premi ',
   pressOr:      ' o ',
   pressSuffix:  ' per iniziare',
@@ -261,6 +269,8 @@ const IT: LangStrings = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 const FR: LangStrings = {
+  wakePrefix:   'Appuyez sur ',
+  wakeSuffix:   ' pour réveiller (ISAMO !)',
   pressPrefix:  'Appuyez ',
   pressOr:      ' ou ',
   pressSuffix:  ' pour commencer',
@@ -365,6 +375,8 @@ const FR: LangStrings = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 const JP: LangStrings = {
+  wakePrefix:   '',
+  wakeSuffix:   ' を押して (ISAMO !) を起動',
   pressPrefix:  '',
   pressOr:      ' または ',
   pressSuffix:  ' を押してスタート',
