@@ -558,6 +558,8 @@ export default function App() {
           <WakeScreen
             key="wake"
             onWake={() => setScreen('loading')}
+            onControllerInput={onControllerInput}
+            inputMode={inputMode}
             lang={lang}
           />
         )}

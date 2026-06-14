@@ -3781,10 +3781,12 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       }
     },
     onY: () => {
-      // In sound player with no video loaded → trigger upload; otherwise keep C behaviour
-      if (isLibraryPanel && focusedW !== null && !videoUrl) {
-        videoUploadRef.current?.click();
-      } else {
+      // Sound player (no video yet) → upload a video; Board → cycle the "order by"
+      // category (mirrors C). Elsewhere: no-op — avoids silently reordering the
+      // board from unrelated screens (player-with-video, artists, idle…).
+      if (isLibraryPanel && focusedW !== null) {
+        if (!videoUrl) videoUploadRef.current?.click();
+      } else if (isMoodboard) {
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'C', bubbles: true }));
       }
     },
@@ -3794,8 +3796,10 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       else if (isLibraryPanel && focusedW !== null) toggleReverse();
     },
     onStart: () => {
-      // Board view → cycle 2 / 4 column layout (mirrors the H key)
-      if (isMoodboard) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'H', bubbles: true }));
+      // Sound player → download the current sound (matches the Start icon shown on
+      // the download button); Board view → cycle 2 / 4 column layout (mirrors H).
+      if (isLibraryPanel && focusedW !== null) downloadSound();
+      else if (isMoodboard) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'H', bubbles: true }));
     },
     onX: () => {
       // X — toggle FX navigation mode (mirrors the Enter key in the sound player)

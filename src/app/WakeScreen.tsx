@@ -5,9 +5,12 @@ import { getStrings, type Lang } from './i18n/strings';
 import { getCtx } from './audio/audioContext';
 import { preloadKeyboardSounds } from './audio/keyboardSounds';
 import { preloadUiSounds } from './audio/uiSounds';
+import { useGamepadNav } from './hooks/useGamepadNav';
 
 interface Props {
   onWake: () => void;
+  onControllerInput?: () => void;       // switch the app into controller mode
+  inputMode?: 'keyboard' | 'controller';
   lang?: Lang;
 }
 
@@ -17,47 +20,60 @@ interface Props {
 // play on a cold web visit. This minimal prompt sits in front of it: the first
 // key/click resumes the shared AudioContext and primes HTMLAudio *inside the
 // gesture*, unlocking sound for the whole session — then the loading animation
-// runs WITH audio.
-export function WakeScreen({ onWake, lang = 'en' }: Props) {
+// runs WITH audio. A controller button also advances it and flips into
+// controller mode (note: gamepad input is not a "user gesture" for autoplay, so
+// waking with a pad may leave the loading sounds muted until a key/click later).
+export function WakeScreen({ onWake, onControllerInput, inputMode = 'keyboard', lang = 'en' }: Props) {
   const S = getStrings(lang);
   const firedRef = useRef(false);
 
+  // Stable wake handler (ref-backed) so the keydown effect and the gamepad hook
+  // both call the latest version without re-subscribing.
+  const wakeRef = useRef<(viaController?: boolean) => void>(() => {});
+  wakeRef.current = (viaController = false) => {
+    if (firedRef.current) return;
+    firedRef.current = true;
+
+    if (viaController) onControllerInput?.();
+
+    // Resume the shared Web Audio context within the gesture.
+    getCtx();
+
+    // Prime HTMLAudio (the loading "!" pop uses `new Audio().play()` ~2.5 s
+    // later — a play() called now inside the gesture unlocks it for the session).
+    try {
+      const primer = new Audio('/sounds/ui-loading_end.mp3');
+      primer.volume = 0;
+      primer.play().then(() => { primer.pause(); primer.currentTime = 0; }).catch(() => {});
+    } catch { /* ignore */ }
+
+    // Start decoding samples now (also kicked off by the loading screen).
+    preloadKeyboardSounds();
+    preloadUiSounds();
+
+    onWake();
+  };
+
   useEffect(() => {
-    const wake = () => {
-      if (firedRef.current) return;
-      firedRef.current = true;
-
-      // Resume the shared Web Audio context within the gesture.
-      getCtx();
-
-      // Prime HTMLAudio (the loading "!" pop uses `new Audio().play()` ~2.5 s
-      // later — a play() called now inside the gesture unlocks it for the session).
-      try {
-        const primer = new Audio('/sounds/ui-loading_end.mp3');
-        primer.volume = 0;
-        primer.play().then(() => { primer.pause(); primer.currentTime = 0; }).catch(() => {});
-      } catch { /* ignore */ }
-
-      // Start decoding samples now (also kicked off by the loading screen).
-      preloadKeyboardSounds();
-      preloadUiSounds();
-
-      onWake();
-    };
-
     const onKey = (e: KeyboardEvent) => {
       if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
       e.preventDefault();
-      wake();
+      wakeRef.current(false);
     };
+    const onPointer = () => wakeRef.current(false);
 
     window.addEventListener('keydown', onKey);
-    window.addEventListener('pointerdown', wake);
+    window.addEventListener('pointerdown', onPointer);
     return () => {
       window.removeEventListener('keydown', onKey);
-      window.removeEventListener('pointerdown', wake);
+      window.removeEventListener('pointerdown', onPointer);
     };
-  }, [onWake]);
+  }, []);
+
+  // Any controller input wakes the screen and switches into controller mode.
+  useGamepadNav({ onAnyInput: () => wakeRef.current(true) }, true);
+
+  const isCtrl = inputMode === 'controller';
 
   return (
     <motion.div
@@ -92,7 +108,7 @@ export function WakeScreen({ onWake, lang = 'en' }: Props) {
         }}
       >
         {S.wakePrefix}
-        <Icon name="key-enter" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 0.25em' }} />
+        <Icon name={isCtrl ? 'controller-A' : 'key-enter'} size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 0.25em' }} />
         {S.wakeSuffix}
       </motion.p>
     </motion.div>
