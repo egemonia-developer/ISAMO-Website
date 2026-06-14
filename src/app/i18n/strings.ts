@@ -46,6 +46,10 @@ export interface LangStrings {
   fxEnterHint: string; // "…to enter effects mode"
   fxEscHint:   string; // "…to return to sound selection"
 
+  // ── Home — FX mode entry/exit overlay (huge, brief flash) ──────────────────────
+  fxModeText: string;     // "FX Mode!"
+  fxModeExitText: string; // "Selection Mode!"
+
   // ── Logo hover reveal — ISAMO = Intelligent Sound And Motion Organiser ────────
   isamoWords: readonly string[];
 }
@@ -145,6 +149,8 @@ const EN: LangStrings = {
 
   fxEnterHint: 'to enter effects mode.',
   fxEscHint:   'to return to sound selection.',
+  fxModeText:  'FX Mode!',
+  fxModeExitText: 'Selection Mode!',
 
   isamoWords: ['Intelligent', 'Sound', 'And', 'Motion', 'Organiser'],
 };
@@ -245,6 +251,8 @@ const IT: LangStrings = {
 
   fxEnterHint: 'per entrare in modalità effetti.',
   fxEscHint:   'per ritornare alla selezione del suono.',
+  fxModeText:  'Modalità FX!',
+  fxModeExitText: 'Modalità Selezione!',
 
   // Riordinate per senso logico (non più in ordine acronimo):
   // "Organizzatore Intelligente di Suono e Movimento"
@@ -348,6 +356,8 @@ const FR: LangStrings = {
 
   fxEnterHint: "pour passer en mode effets.",
   fxEscHint:   "pour revenir à la sélection du son.",
+  fxModeText:  'Mode FX !',
+  fxModeExitText: 'Mode Sélection !',
 
   // Réordonné pour un sens logique : "Organisateur Intelligent de Son et Mouvement"
   isamoWords: ['Organisateur', 'Intelligent', 'Son', 'Et', 'Mouvement'],
@@ -449,6 +459,8 @@ const JP: LangStrings = {
 
   fxEnterHint: 'でエフェクトモードに入ります。',
   fxEscHint:   'で音の選択に戻ります。',
+  fxModeText:  'FXモード！',
+  fxModeExitText: '選択モード！',
 
   isamoWords: ['インテリジェント', 'サウンド', 'アンド', 'モーション', 'オーガナイザー'],
 };

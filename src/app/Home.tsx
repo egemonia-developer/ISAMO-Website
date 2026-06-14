@@ -13,6 +13,7 @@ import type { InputMode } from './App';
 import { motion, AnimatePresence, useIsPresent } from 'motion/react';
 import { Icon, type IconName } from './icons';
 import { VideoTile, nudgeVideoFrame } from './VideoTile';
+import { FxModeOverlay } from './FxModeOverlay';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 type WItem    = { id: string; label: string; title: string; duration: string };
@@ -903,32 +904,8 @@ function FxBracket({ children, active, color = 'var(--ui-fg)', onClick, onWheel,
 // (see welcomePages computed in render body)
 const WELCOME_PAGE_GAP = 20; // vertical gap between stacked intro pages
 
-// ── Sound-player entry hint text (keyboard / controller variants) ─────────────
-function SoundPlayerHintTextController({ lang }: { lang: Lang }) {
-  const S = getStrings(lang);
-  const isPresent  = useIsPresent();
-  const [showSuffix, setShowSuffix] = useState(false);
-  const prefixText = useTypewriter(isPresent ? S.pressPrefix : '', 18, 120, () => setTimeout(() => setShowSuffix(true), 60));
-  const suffixText = useTypewriter(isPresent && showSuffix ? S.soundPlayerHintSuffixCtrl : '', 18);
-  return (
-    <p style={{
-      margin:         0,
-      fontSize:       FS_LARGE * 2,
-      lineHeight:     1.0,
-      color:         '#fff',
-      letterSpacing: '0.04em',
-      fontFamily:     FONT,
-    }}>
-      {prefixText}
-      {showSuffix && (
-        <Icon name="controller-A" size="1em" color="#fff"
-          style={{ verticalAlign: 'middle', marginLeft: '0.25em', marginRight: '4px' }} />
-      )}
-      {suffixText}
-    </p>
-  );
-}
-
+// ── Sound-player entry hint text — icons swap instantly with inputMode, the
+// surrounding typewriter text never restarts (no remount on mode switch). ─────
 function SoundPlayerHintText({ inputMode, lang = 'en', color = '#fff', fontSize = FS_LARGE * 2, iconColor = '#fff', iconSize = "1em" }: {
   inputMode:   'keyboard' | 'controller';
   lang?:       Lang;
@@ -938,7 +915,6 @@ function SoundPlayerHintText({ inputMode, lang = 'en', color = '#fff', fontSize 
   iconSize?:   number | string;   // fixed icon height (defaults to 0.7em, scaling with the text)
 }) {
   const S = getStrings(lang);
-  if (inputMode === 'controller') return <SoundPlayerHintTextController lang={lang} />;
   const isPresent = useIsPresent();
   const [showSuffix, setShowSuffix] = useState(false);
   const prefixText = useTypewriter(isPresent ? S.pressPrefix : '', 18, 120, () => setTimeout(() => setShowSuffix(true), 60));
@@ -955,9 +931,9 @@ function SoundPlayerHintText({ inputMode, lang = 'en', color = '#fff', fontSize 
       {prefixText}
       {showSuffix && (
         <>
-          <Icon name="key-right" size={iconSize} color={iconColor} style={{ verticalAlign: 'middle', margin: '0 0.25em' }} />
+          <Icon name={inputMode === 'controller' ? 'controller-A' : 'key-right'} size={iconSize} color={iconColor} style={{ verticalAlign: 'middle', margin: '0 0.25em' }} />
           {S.pressOr.trim()}
-          <Icon name="key-enter" size={iconSize} color={iconColor} style={{ verticalAlign: 'middle', margin: '0 0.25em' }} />
+          <Icon name={inputMode === 'controller' ? 'croce-right' : 'key-enter'} size={iconSize} color={iconColor} style={{ verticalAlign: 'middle', margin: '0 0.25em' }} />
           {' '}
         </>
       )}
@@ -968,7 +944,7 @@ function SoundPlayerHintText({ inputMode, lang = 'en', color = '#fff', fontSize 
 
 // One page of the intro text. Types `text`; when done, shows a blinking enter
 // icon if `hasMore` (indicates there's a continuation behind Enter).
-function WelcomePage({ text, hasMore, active, onDone }: { text: string; hasMore: boolean; active: boolean; onDone?: () => void }) {
+function WelcomePage({ text, hasMore, active, onDone, inputMode }: { text: string; hasMore: boolean; active: boolean; onDone?: () => void; inputMode: 'keyboard' | 'controller' }) {
   const typed = useTypewriter(active ? text : '', 11, 1000, undefined, 2);
   const done = typed.length >= text.length;
   useEffect(() => { if (done) onDone?.(); }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -988,7 +964,7 @@ function WelcomePage({ text, hasMore, active, onDone }: { text: string; hasMore:
           transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
           style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '0.35em' }}
         >
-          <Icon name="key-enter" size="1em" color="var(--ui-complement)" />
+          <Icon name={inputMode === 'controller' ? 'controller-A' : 'key-enter'} size="1em" color="var(--ui-complement)" />
         </motion.span>
       )}
     </p>
@@ -1176,6 +1152,27 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
   // parameter (FX_PARAM_SEQ), ↑/↓ adjust the focused parameter's value directly.
   const [fxFocus, setFxFocus] = useState<number | null>(null);
   const [fxParam, setFxParam] = useState(0);    // which sub-value of the focused group is highlighted
+  // Brief "FX Mode!" / "Selection Mode!" overlay flash — fires whenever fxFocus
+  // crosses the null ↔ active boundary, regardless of trigger source
+  // (Enter/Tab, gamepad X, transport-bar click).
+  const [fxOverlayMode, setFxOverlayMode] = useState<'enter' | 'exit' | null>(null);
+  const prevFxFocusRef = useRef<number | null>(null);
+  useEffect(() => {
+    const prev = prevFxFocusRef.current;
+    if (fxFocus !== null && prev === null) {
+      setFxOverlayMode('enter');
+      const t = setTimeout(() => setFxOverlayMode(null), 700);
+      prevFxFocusRef.current = fxFocus;
+      return () => clearTimeout(t);
+    }
+    if (fxFocus === null && prev !== null) {
+      setFxOverlayMode('exit');
+      const t = setTimeout(() => setFxOverlayMode(null), 700);
+      prevFxFocusRef.current = fxFocus;
+      return () => clearTimeout(t);
+    }
+    prevFxFocusRef.current = fxFocus;
+  }, [fxFocus]);
   // ISAMO logo click (App-level) → return to the home idle root (clear navigation).
   useEffect(() => {
     if (homeReset <= 0) return;
@@ -3670,6 +3667,13 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     onStickRight: () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true })),
     onConfirm: () => {
       if (cursorState.active) return;
+      // Idle intro — A advances the welcome text (mirrors the Enter key)
+      if (isYIdle) {
+        if (welcomePageIdx < welcomePagesRef.current.length - 1) { welcomeNext(false); return; }
+        cancelTts(); setWelcomeMuted(true);
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+        return;
+      }
       if (isSettingsPanel) {
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
         return;
@@ -3692,6 +3696,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     onBack: () => {
       if (isSettingsVActive) { goV(null); return; }   // exit V → back to W preview
       if (isSettingsPanel)   { goW(null); return; }   // exit W → back to X
+      if (isLibraryPanel && focusedW !== null && fxFocus !== null) {
+        setFxFocus(null); setFxParam(0); playUi('undo'); return;
+      }
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
     },
     onLB: () => {
@@ -3761,7 +3768,25 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       }
     },
     onSelect:  () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F', bubbles: true })),
-    onRB:      () => { if (isLibraryPanel && focusedW !== null) toggleReverse(); },
+    onRB: () => {
+      // Board view → toggle sort direction (mirrors the G key); sound player → reverse toggle
+      if (isMoodboard) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'G', bubbles: true }));
+      else if (isLibraryPanel && focusedW !== null) toggleReverse();
+    },
+    onStart: () => {
+      // Board view → cycle 2 / 4 column layout (mirrors the H key)
+      if (isMoodboard) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'H', bubbles: true }));
+    },
+    onX: () => {
+      // X — toggle FX navigation mode (mirrors the Enter key in the sound player)
+      if (isLibraryPanel && focusedW !== null) {
+        if (fxFocus === null) { initFxChain(); setFxFocus(0); setFxParam(0); playUi('conferma'); }
+        else                  { setFxFocus(null); setFxParam(0); playUi('undo'); }
+        return;
+      }
+      // Idle intro — toggle the ometto's TTS narration (mirrors the T key)
+      if (isYIdle && ttsEnabled) toggleWelcomeSpeech();
+    },
   });
 
   return (
@@ -3775,6 +3800,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       style={{ width: '100vw', height: '100vh', background: 'var(--ui-bg)',
                position: 'relative', fontFamily: FONT, overflow: 'hidden' }}
     >
+      <FxModeOverlay active={fxOverlayMode !== null} text={fxOverlayMode === 'exit' ? S.fxModeExitText : S.fxModeText} />
       {/* ── Back-to-board button (top-left, appears after pill deep-link) ─── */}
       <AnimatePresence>
         {fromBoard && isLibraryPanel && (
@@ -3901,12 +3927,12 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', width: 'max-content', gap: 6 }}>
               {S.pressPrefix}
-              <Icon name="key-enter" size={FS_SMALL} color="var(--ui-complement)" style={{ alignSelf: 'center' }} />
+              <Icon name={inputMode === 'controller' ? 'controller-X' : 'key-enter'} size={FS_SMALL} color="var(--ui-complement)" style={{ alignSelf: 'center' }} />
               {S.fxEnterHint}
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', width: 'max-content', gap: 6 }}>
               {S.pressPrefix}
-              <Icon name="esc" size={FS_SMALL} color="var(--ui-complement)" style={{ alignSelf: 'center' }} />
+              <Icon name={inputMode === 'controller' ? 'controller-B' : 'esc'} size={FS_SMALL} color="var(--ui-complement)" style={{ alignSelf: 'center' }} />
               {S.fxEscHint}
             </span>
           </motion.div>
@@ -4171,6 +4197,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                       active={isYIdle}
                       hasMore={isCurrentPage && welcomePageIdx < welcomePagesRef.current.length - 1}
                       onDone={() => setTypedPages(s => s.has(i) ? s : new Set(s).add(i))}
+                      inputMode={inputMode}
                     />
                   </motion.div>
                 );
@@ -4191,7 +4218,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                      top: `calc(${ANCHOR_TOP} + ${ICON_PX / 2}px)`,
                      transform: 'translateY(-50%)', pointerEvents: 'none' }}
           >
-            <Icon name="key-t" size={FS_SMALL} color="var(--ui-fg)" />
+            <Icon name={inputMode === 'controller' ? 'controller-X' : 'key-t'} size={FS_SMALL} color="var(--ui-fg)" />
           </motion.div>
         )}
         {isYIdle && ttsEnabled && (
@@ -4355,7 +4382,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
             <AnimatePresence>
               {showSoundPlayerHint && (
                 <motion.div
-                  key={`sound-player-hint-${inputMode}`}
+                  key="sound-player-hint"
                   initial={{ opacity: 0, x: 16 }}
                   animate={{ opacity: 1, x: 0, transition: { duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.05 } }}
                   exit={{ opacity: 0, x: -10, transition: { duration: 0.18, ease: [0.4, 0, 1, 0.6] } }}
@@ -5039,7 +5066,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                   {(boardOrderBy ?? 'ORDER BY').toUpperCase()}
                 </span>
                 {/* G shortcut — toggles the sort direction */}
-                <Icon name="key-G" size={FS_SMALL} color="var(--ui-complement)" />
+                <Icon name={inputMode === 'controller' ? 'RB' : 'key-G'} size={FS_SMALL} color="var(--ui-complement)" />
                 <button
                   onClick={() => setBoardSortAsc(a => !a)}
                   style={{
@@ -5059,7 +5086,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                   2 / 4 options, leaving just the (active) one-column indicator. */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexShrink: 0 }}>
                 {/* H shortcut — toggles 2 / 4 columns (desktop only) */}
-                {!isNarrow && <Icon name="key-h" size={FS_SMALL} color="var(--ui-complement)" />}
+                {!isNarrow && <Icon name={inputMode === 'controller' ? 'start' : 'key-h'} size={FS_SMALL} color="var(--ui-complement)" />}
                 {(isNarrow ? [1] as const : [1, 2, 4] as const).map(n => (
                   <button key={n} onClick={() => { if (!isNarrow) setBoardCols(n); }}
                     style={{ background: 'none', border: 'none', padding: 0,
@@ -5557,8 +5584,8 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                         style={{ display: 'flex', alignItems: 'center' }}
                       >
                         {fxFocus === null
-                          ? <Icon name="key-enter" size={FS_SMALL} color="var(--ui-fg)" />
-                          : <Icon name="esc" size={FS_SMALL} color="var(--ui-complement)" />}
+                          ? <Icon name={isCtrl ? 'controller-X' : 'key-enter'} size={FS_SMALL} color="var(--ui-fg)" />
+                          : <Icon name={isCtrl ? 'controller-B' : 'esc'} size={FS_SMALL} color="var(--ui-complement)" />}
                       </motion.span>
                     </div>
 

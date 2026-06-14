@@ -99,7 +99,8 @@ function TagLabel({ label }: { label: string }) {
 const PRESS_START_DELAY = 520; // ms
 const PRESS_START_SPEED = 30;  // ms per character
 
-function KeyboardPressText({ lang }: { lang: Lang }) {
+// Icons swap instantly with inputMode — the typewriter never restarts on mode switch.
+function PressStartText({ lang, inputMode }: { lang: Lang; inputMode: InputMode }) {
   const S = getStrings(lang);
   const [showSuffix, setShowSuffix] = useState(false);
   const prefixText = useTypewriter(S.pressPrefix, PRESS_START_SPEED, PRESS_START_DELAY, () => setTimeout(() => setShowSuffix(true), 60));
@@ -108,27 +109,15 @@ function KeyboardPressText({ lang }: { lang: Lang }) {
     <>
       {prefixText}
       {showSuffix && (
-        <>
-          <Icon name="key-spacebar" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 4px' }} />
-          {S.pressOr}
-          <Icon name="key-enter" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 4px' }} />
-        </>
-      )}
-      {suffixText}
-    </>
-  );
-}
-
-function ControllerPressText({ lang }: { lang: Lang }) {
-  const S = getStrings(lang);
-  const [showSuffix, setShowSuffix] = useState(false);
-  const prefixText = useTypewriter(S.pressPrefix, PRESS_START_SPEED, PRESS_START_DELAY, () => setTimeout(() => setShowSuffix(true), 60));
-  const suffixText = useTypewriter(showSuffix ? S.pressSuffix : '', PRESS_START_SPEED);
-  return (
-    <>
-      {prefixText}
-      {showSuffix && (
-        <Icon name="start" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 4px' }} />
+        inputMode === 'controller' ? (
+          <Icon name="start" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 4px' }} />
+        ) : (
+          <>
+            <Icon name="key-spacebar" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 4px' }} />
+            {S.pressOr}
+            <Icon name="key-enter" size="1em" color="var(--ui-complement)" style={{ verticalAlign: 'middle', margin: '0 4px' }} />
+          </>
+        )
       )}
       {suffixText}
     </>
@@ -369,17 +358,9 @@ export function SplashScreen({ onStart, inputMode = 'keyboard', onControllerInpu
           fontSize: 46, color: 'var(--ui-fg)', letterSpacing: '0.04em', whiteSpace: 'nowrap',
         }}
       >
-        <AnimatePresence mode="wait">
-          {inputMode === 'controller' ? (
-            <motion.span key="ctrl" exit={{ opacity: 0, y: -4, transition: { duration: 0.18 } }} style={{ display: 'inline-flex', alignItems: 'center' }}>
-              <ControllerPressText lang={lang} />
-            </motion.span>
-          ) : (
-            <motion.span key="kb" exit={{ opacity: 0, y: -4, transition: { duration: 0.18 } }} style={{ display: 'inline-block' }}>
-              <KeyboardPressText lang={lang} />
-            </motion.span>
-          )}
-        </AnimatePresence>
+        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+          <PressStartText lang={lang} inputMode={inputMode} />
+        </span>
       </motion.p>
 
       {/* ── Small navigation hint — second line, below the first ── */}
