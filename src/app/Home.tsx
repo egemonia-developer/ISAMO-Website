@@ -187,19 +187,19 @@ const MACLOW_SOUNDS   = makeSounds('A.MC', 9, n => `Maclow-${n}`);
 const RUSOWSKY_SOUNDS = makeSounds('A.RS', 9, n => `Rusowsky-${n}`);
 const SAMPHA_SOUNDS   = makeSounds('A.SM', 9, n => `Sampha-${n}`);
 
-// ── Board / splash gallery clips — title / designer / country left blank to fill ──
+// ── Board / splash gallery clips — designers, year, and up to 3 associated sounds ──
 export const INITIAL_BOARD_VIDEOS = [
-  { id: '1', src: '/refs/diplomes-1_9.mp4',              label: '', author: '', country: '', year: 2025, tags: [] },
-  { id: '2', src: '/refs/diplomes-1.mp4',                label: '', author: '', country: '', year: 2025, tags: ['B.A07'] },
-  { id: '3', src: '/refs/alessandro-vogel-01-sound.mp4', label: '', author: '', country: '', year: 2025, tags: ['B.A02'] },
-  { id: '4', src: '/refs/video-1.mp4',                   label: '', author: '', country: '', year: 2025, tags: ['E.GL05'] },
-  { id: '5', src: '/refs/video-2.mp4',                   label: '', author: '', country: '', year: 2025, tags: ['E.ST01'] },
-  { id: '6', src: '/refs/video-3.mp4',                   label: '', author: '', country: '', year: 2025, tags: ['E.ST02'] },
-  { id: '7', src: '/refs/carolina.mp4',                  label: '', author: '', country: '', year: 2025, tags: [] },
-  { id: '8', src: '/refs/defile.mp4',                    label: '', author: '', country: '', year: 2025, tags: [] },
-  { id: '9', src: '/refs/stanislay.mp4',                 label: '', author: '', country: '', year: 2025, tags: [] },
-  { id: '10', src: '/refs/pling.mp4',                    label: '', author: '', country: '', year: 2025, tags: [] },
-  { id: '11', src: '/refs/videoex.mp4',                  label: '', author: '', country: '', year: 2025, tags: [] },
+  { id: '1',  src: '/refs/diplomes-1_9.mp4',              authors: ['Alessandro Vogel', 'Luca Janin'],                            year: 2025, tags: ['M.R03', 'M.R04', 'C.CT05'] },
+  { id: '2',  src: '/refs/diplomes-1.mp4',                authors: ['Raffinerie'],                                                year: 2026, tags: ['B.A11', 'M.R09'] },
+  { id: '3',  src: '/refs/alessandro-vogel-01-sound.mp4', authors: ['Alessandro Vogel', 'Luca Janin'],                            year: 2025, tags: ['B.A07', 'B.A06', 'B.A05'] },
+  { id: '4',  src: '/refs/video-1.mp4',                   authors: ['Anette Lenz', 'Romain Graille'],                             year: 2022, tags: ['B.A01'] },
+  { id: '5',  src: '/refs/video-2.mp4',                   authors: ['Martin Woodtli'],                                            year: 2025, tags: ['M.R06', 'E.GL06'] },
+  { id: '6',  src: '/refs/video-3.mp4',                   authors: ['Léa Leducq', 'Lorenzo Ferrara'],                             year: 2026, tags: ['B.A03'] },
+  { id: '7',  src: '/refs/carolina.mp4',                  authors: ['Carolina Crivelli', 'Clara Besson', 'Emilie Rattenberger'], year: 2025, tags: ['B.A09', 'B.A08', 'M.R07'] },
+  { id: '8',  src: '/refs/defile.mp4',                    authors: ['Offshore Studio'],                                           year: 2024, tags: ['C.CT04', 'M.SP02'] },
+  { id: '9',  src: '/refs/stanislay.mp4',                 authors: ['Stanislas Leray'],                                           year: 2026, tags: ['E.ST03', 'M.R08'] },
+  { id: '10', src: '/refs/pling.mp4',                     authors: ['Studiengang Viscom ZHDK'],                                   year: 2026, tags: ['M.SP04', 'M.SP03'] },
+  { id: '11', src: '/refs/videoex.mp4',                   authors: ['Martin Woodtli'],                                            year: 2025, tags: ['M.R06', 'E.GL06'] },
 ];
 
 // Board search match — shared by render filter + keyboard navigation
@@ -208,9 +208,7 @@ function boardItemMatches(v: typeof INITIAL_BOARD_VIDEOS[number], idx: number, q
   const num = String(idx + 1).padStart(2, '0');
   return num.includes(q) ||
     String(idx + 1).includes(q) ||
-    v.label.toLowerCase().includes(q) ||
-    v.author?.toLowerCase().includes(q) ||
-    v.country?.toLowerCase().includes(q) ||
+    v.authors.some(a => a.toLowerCase().includes(q)) ||
     String(v.year).includes(q) ||
     v.tags?.some(t => t.toLowerCase().includes(q));
 }
@@ -292,10 +290,10 @@ const CATEGORIES: Category[] = [
       { label: 'Camera',      iconName: 'camera',      preview: '/previews/camera.mp4', previewFit: 'cover', zItems: [
         { label: 'Zoom',  wItems: makeSounds('C.ZM', 2, n => `Zoom-${n}`), preview: '/previews/zoom-mod.mp4', previewFit: 'cover' },
         { label: 'Depth', wItems: [], preview: '/previews/focus-mod.mp4', previewFit: 'cover' },
-        { label: 'Cuts',  wItems: makeSounds('C.CT', 4, n => `Cuts-${n}`), preview: '/previews/cuts-mod.mp4', previewFit: 'cover' },
+        { label: 'Cuts',  wItems: makeSounds('C.CT', 5, n => `Cuts-${n}`), preview: '/previews/cuts-mod.mp4', previewFit: 'cover' },
       ]},
       { label: 'Effects',     iconName: 'effects',     preview: '/previews/effects-general.mp4', previewFit: 'cover', zItems: [
-        { label: 'Glitch', wItems: makeSounds('E.GL', 5, n => `Glitch-${n}`), preview: '/previews/glitch.mp4', previewFit: 'cover' },
+        { label: 'Glitch', wItems: makeSounds('E.GL', 6, n => `Glitch-${n}`), preview: '/previews/glitch.mp4', previewFit: 'cover' },
         { label: 'Strobe', wItems: makeSounds('E.ST', 3, n => `Strobe-${n}`), preview: '/previews/strobe.mp4', previewFit: 'cover' },
       ]},
       { label: 'Backing',     iconName: 'backing', preview: '/previews/backing-mod.mp4', previewFit: 'cover', zItems: [
@@ -2720,7 +2718,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
         let cmp = 0;
         switch (boardOrderBy) {
           case 'Author':
-            cmp = va.label.localeCompare(vb.label);
+            cmp = (va.authors[0] ?? '').localeCompare(vb.authors[0] ?? '');
             break;
           case 'Date':
             cmp = (va.year ?? 0) - (vb.year ?? 0);
@@ -2977,7 +2975,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     const url  = URL.createObjectURL(file);
     const name = file.name.replace(/\.[^.]+$/, ''); // strip extension
     const tags = isamoTags(file.name);
-    const newVideo = { id: String(Date.now()), src: url, label: name, year: new Date().getFullYear(), tags };
+    const newVideo = { id: String(Date.now()), src: url, authors: [name], year: new Date().getFullYear(), tags };
     setBoardVideos(prev => [...prev, newVideo]);
     // Brief success flash
     setBoardUploadSuccess(true);
@@ -5325,34 +5323,39 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                            pills sit just below the title without moving it. ── */}
                     <div style={{ width: boardCols === 4 ? 130 : BOARD_META_W, flexShrink: 0, alignSelf: 'stretch',
                                   position: 'relative', overflow: 'visible' }}>
-                      {/* Title (author) — bracket + name, vertically centred */}
+                      {/* Authors (one bracketed name per line) — the whole stack is
+                           vertically centred on the video's axis. Date + sound pills
+                           sit absolutely just below the stack so they never shift it. */}
                       <div style={{ position: 'absolute', top: '50%', left: 0, transform: 'translateY(-50%)', overflow: 'visible' }}>
-                        <BoardTitle label={v.label} active={active} cols={boardCols} hovered={isHovered} />
-                      </div>
-                      {/* Date + Country, then pills — just below the title's axis (active only) */}
-                      <AnimatePresence>
-                        {active && (
-                          <motion.div
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            style={{ position: 'absolute', top: '50%', left: 0, marginTop: 22,
-                                     display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
-                            <div style={{ display: 'flex', gap: 16, fontSize: 11, fontFamily: FONT,
-                                          color: 'var(--ui-fg)', opacity: 0.6, letterSpacing: '0.10em' }}>
-                              <span>{v.year}</span>
-                              {v.country && <span>{v.country}</span>}
-                            </div>
-                            {v.tags && v.tags.length > 0 && (
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
-                                {v.tags.map(tag => (
-                                  <TagLabel key={tag} label={tag}
-                                    onClick={findSoundPath(tag) ? () => navigateToSound(tag) : undefined} />
-                                ))}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {v.authors.map((name, ai) => (
+                            <BoardTitle key={ai} label={name} active={active} cols={boardCols} hovered={isHovered} />
+                          ))}
+                        </div>
+                        {/* Date, then pills — just below the author stack (active only) */}
+                        <AnimatePresence>
+                          {active && (
+                            <motion.div
+                              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              style={{ position: 'absolute', top: '100%', left: 0, marginTop: 10,
+                                       display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+                              <div style={{ display: 'flex', gap: 16, fontSize: 11, fontFamily: FONT,
+                                            color: 'var(--ui-fg)', opacity: 0.6, letterSpacing: '0.10em' }}>
+                                <span>{v.year}</span>
                               </div>
-                            )}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                              {v.tags && v.tags.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+                                  {v.tags.map(tag => (
+                                    <TagLabel key={tag} label={tag}
+                                      onClick={findSoundPath(tag) ? () => navigateToSound(tag) : undefined} />
+                                  ))}
+                                </div>
+                              )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
 
                     {/* ── Video ── */}
