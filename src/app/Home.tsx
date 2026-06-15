@@ -198,6 +198,8 @@ export const INITIAL_BOARD_VIDEOS = [
   { id: '7', src: '/refs/carolina.mp4',                  label: '', author: '', country: '', year: 2025, tags: [] },
   { id: '8', src: '/refs/defile.mp4',                    label: '', author: '', country: '', year: 2025, tags: [] },
   { id: '9', src: '/refs/stanislay.mp4',                 label: '', author: '', country: '', year: 2025, tags: [] },
+  { id: '10', src: '/refs/pling.mp4',                    label: '', author: '', country: '', year: 2025, tags: [] },
+  { id: '11', src: '/refs/videoex.mp4',                  label: '', author: '', country: '', year: 2025, tags: [] },
 ];
 
 // Board search match — shared by render filter + keyboard navigation
