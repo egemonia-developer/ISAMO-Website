@@ -95,7 +95,7 @@ const EN: LangStrings = {
   uploadText:      "Upload your clip,\nThe playback will be sync to the sound you've chosen.",
   boardUploadText: "Upload your clip,\n(ISAMO !) will recognize and categorize it for the Board.",
 
-  soundPlayerHintSuffix:     'to open the Sound Player.',
+  soundPlayerHintSuffix:     ', or click, to open the Sound Player.',
   soundPlayerHintSuffixCtrl: ' to open the Sound Player.',
 
   accountWip: 'The account section is still a work in progress!',
@@ -199,7 +199,7 @@ const IT: LangStrings = {
   uploadText:      "Carica il tuo clip,\nLa riproduzione sarà sincronizzata al suono che hai scelto.",
   boardUploadText: "Carica il tuo clip,\n(ISAMO !) lo riconoscerà e lo categorizzerà per la Board.",
 
-  soundPlayerHintSuffix:     'per aprire il Sound Player.',
+  soundPlayerHintSuffix:     ', o clicca, per aprire il Sound Player.',
   soundPlayerHintSuffixCtrl: ' per aprire il Sound Player.',
 
   accountWip: 'La sezione account è ancora un work in progress!',
@@ -305,7 +305,7 @@ const FR: LangStrings = {
   uploadText:      "Importez votre clip,\nLa lecture sera synchronisée au son que vous avez choisi.",
   boardUploadText: "Importez votre clip,\n(ISAMO !) le reconnaîtra et le catégorisera pour le Board.",
 
-  soundPlayerHintSuffix:     'pour ouvrir le Sound Player.',
+  soundPlayerHintSuffix:     ', ou cliquez, pour ouvrir le Sound Player.',
   soundPlayerHintSuffixCtrl: ' pour ouvrir le Sound Player.',
 
   accountWip: "La section compte est encore en cours de développement !",
@@ -411,7 +411,7 @@ const JP: LangStrings = {
   uploadText:      'クリップをアップロード\n選んだ音に再生が同期されます。',
   boardUploadText: 'クリップをアップロード\n(ISAMO !)が認識してボード用に分類します。',
 
-  soundPlayerHintSuffix:     'を押してサウンドプレーヤーを開く。',
+  soundPlayerHintSuffix:     '、またはクリックしてサウンドプレーヤーを開く。',
   soundPlayerHintSuffixCtrl: ' を押してサウンドプレーヤーを開く。',
 
   accountWip: 'アカウントセクションはまだ開発中です！',

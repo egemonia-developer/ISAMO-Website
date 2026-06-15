@@ -54,23 +54,27 @@ const NAV_SPRING = { type: 'spring', stiffness: 420, damping: 32, mass: 0.8 } as
 
 function SplashTitle({ label, selected, dim }: { label: string; selected: boolean; dim: boolean }) {
   const col = selected ? 'var(--ui-complement)' : 'var(--ui-fg)';
+  // Brackets are absolutely positioned (not flex children) so they take no layout
+  // width: the name then sits flush at left:0 when unselected, aligning with the
+  // year/sound-tag lines below. On selection the name slides to centre and the
+  // brackets fade in at the column's edges.
   return (
-    <div style={{ display: 'flex', alignItems: 'center', width: META_W - 10 }}>
+    <div style={{ position: 'relative', width: META_W - 10, height: TITLE_FS }}>
       <motion.span animate={{ opacity: selected ? 1 : 0 }} transition={{ duration: 0.15 }}
-        style={{ fontSize: TITLE_FS, lineHeight: 1, color: col, flexShrink: 0 }}>(</motion.span>
-      <span style={{ flex: 1, position: 'relative', alignSelf: 'stretch' }}>
-        <motion.span
-          animate={{ left: selected ? '50%' : '0%', x: selected ? '-50%' : '0%', opacity: dim ? 0.45 : 1 }}
-          transition={NAV_SPRING}
-          style={{ position: 'absolute', top: '50%', y: '-50%',
-                   fontSize: TITLE_FS, fontFamily: FONT, color: col,
-                   whiteSpace: 'nowrap', lineHeight: 1, letterSpacing: '0.04em' }}
-        >
-          {label}
-        </motion.span>
-      </span>
+        style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)',
+                 fontSize: TITLE_FS, lineHeight: 1, color: col }}>(</motion.span>
+      <motion.span
+        animate={{ left: selected ? '50%' : '0%', x: selected ? '-50%' : '0%', opacity: dim ? 0.45 : 1 }}
+        transition={NAV_SPRING}
+        style={{ position: 'absolute', top: '50%', y: '-50%',
+                 fontSize: TITLE_FS, fontFamily: FONT, color: col,
+                 whiteSpace: 'nowrap', lineHeight: 1, letterSpacing: '0.04em' }}
+      >
+        {label}
+      </motion.span>
       <motion.span animate={{ opacity: selected ? 1 : 0 }} transition={{ duration: 0.15 }}
-        style={{ fontSize: TITLE_FS, lineHeight: 1, color: col, flexShrink: 0 }}>)</motion.span>
+        style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
+                 fontSize: TITLE_FS, lineHeight: 1, color: col }}>)</motion.span>
     </div>
   );
 }
@@ -401,22 +405,31 @@ export function SplashScreen({ onStart, inputMode = 'keyboard', onControllerInpu
               const isMuted = !unmuted.has(p.id);
               return (
               <div key={i} data-row data-pid={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 28, marginBottom: ITEM_GAP }}>
-                {/* Metadata — left */}
-                <div data-meta style={{ width: META_W, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
-                  {/* Author names — one bracketed line each (zoom on selection) */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
-                    {p.authors.map((name, ai) => (
-                      <SplashTitle key={ai} label={name} selected={isSelected} dim={selIdx !== null && !isSelected} />
-                    ))}
-                  </div>
-                  <span style={{ fontFamily: FONT, fontSize: 12, color: 'var(--ui-fg)', opacity: 0.6, letterSpacing: '0.10em' }}>
-                    {p.year}
-                  </span>
-                  {p.tags && p.tags.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
-                      {p.tags.map(tag => <TagLabel key={tag} label={tag} />)}
+                {/* Metadata — left. Stretches to the video's height so the author
+                    stack can be vertically centred on the video's axis (matching the
+                    Home board); year + pills sit just below the stack without
+                    shifting it. */}
+                <div data-meta style={{ width: META_W, flexShrink: 0, alignSelf: 'stretch', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: '50%', left: 0, transform: 'translateY(-50%)' }}>
+                    {/* Author names — one bracketed line each (zoom on selection) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+                      {p.authors.map((name, ai) => (
+                        <SplashTitle key={ai} label={name} selected={isSelected} dim={selIdx !== null && !isSelected} />
+                      ))}
                     </div>
-                  )}
+                    {/* Year + pills — just below the author stack */}
+                    <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 8,
+                                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+                      <span style={{ fontFamily: FONT, fontSize: 12, color: 'var(--ui-fg)', opacity: 0.6, letterSpacing: '0.10em' }}>
+                        {p.year}
+                      </span>
+                      {p.tags && p.tags.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+                          {p.tags.map(tag => <TagLabel key={tag} label={tag} />)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 {/* Video — right (plays only while its row is hovered/selected) */}
                 <div style={{ flexShrink: 0, position: 'relative' }}>

@@ -1008,7 +1008,6 @@ function SoundPlayerHintText({ inputMode, lang = 'en', color = '#fff', fontSize 
           <Icon name={inputMode === 'controller' ? 'controller-A' : 'key-right'} size={iconSize} color={iconColor} style={{ verticalAlign: 'middle', margin: '0 0.25em' }} />
           {S.pressOr.trim()}
           <Icon name={inputMode === 'controller' ? 'croce-right' : 'key-enter'} size={iconSize} color={iconColor} style={{ verticalAlign: 'middle', margin: '0 0.25em' }} />
-          {' '}
         </>
       )}
       {suffixText}
@@ -4562,11 +4561,13 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                   initial={{ opacity: 0, x: 16 }}
                   animate={{ opacity: 1, x: 0, transition: { duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.05 } }}
                   exit={{ opacity: 0, x: -10, transition: { duration: 0.18, ease: [0.4, 0, 1, 0.6] } }}
+                  onClick={() => { playUi('horizontalRight'); goW(0); }}
                   style={{
                     position: 'absolute', inset: 0,
                     display: 'flex', alignItems: 'center',
                     paddingLeft: '14%', paddingRight: '14%',
-                    pointerEvents: 'none',
+                    pointerEvents: 'auto',
+                    cursor: 'pointer',
                     mixBlendMode: 'difference',
                   }}
                 >
@@ -4629,7 +4630,8 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
             {/* Sound player hint — small text; blinks (fading) once the bio finishes typing */}
             {showArtistSoundHint && (
               <motion.div
-                style={{ flex: 1, marginTop: -(FS_SMALL * 1.1) / 2 }}
+                onClick={() => { playUi('horizontalRight'); goW(0); }}
+                style={{ flex: 1, marginTop: -(FS_SMALL * 1.1) / 2, pointerEvents: 'auto', cursor: 'pointer' }}
                 animate={{ opacity: bioDone ? [1, 0.18, 1] : 1 }}
                 transition={bioDone
                   ? { duration: 1.4, repeat: Infinity, ease: 'easeInOut' }
