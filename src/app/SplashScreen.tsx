@@ -403,10 +403,14 @@ export function SplashScreen({ onStart, inputMode = 'keyboard', onControllerInpu
               <div key={i} data-row data-pid={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 28, marginBottom: ITEM_GAP }}>
                 {/* Metadata — left */}
                 <div data-meta style={{ width: META_W, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
-                  {/* Title row — bracket + complement colour + zoom on selection */}
-                  <SplashTitle label={p.label} selected={isSelected} dim={selIdx !== null && !isSelected} />
+                  {/* Author names — one bracketed line each (zoom on selection) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+                    {p.authors.map((name, ai) => (
+                      <SplashTitle key={ai} label={name} selected={isSelected} dim={selIdx !== null && !isSelected} />
+                    ))}
+                  </div>
                   <span style={{ fontFamily: FONT, fontSize: 12, color: 'var(--ui-fg)', opacity: 0.6, letterSpacing: '0.10em' }}>
-                    {p.year}{p.country ? ` · ${p.country}` : ''}
+                    {p.year}
                   </span>
                   {p.tags && p.tags.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>

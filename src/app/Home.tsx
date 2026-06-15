@@ -3980,44 +3980,46 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
             whileHover={{ opacity: 0.5 }}
             onClick={backToBoard}
             style={{
-              position: 'absolute', top: 14, left: 6,
+              position: 'absolute', top: 14, left: LOGO_LEFT,
               display: 'flex', alignItems: 'center', gap: 6,
               pointerEvents: 'auto', cursor: 'pointer',
             }}
           >
-            {/* B icon with circular progress ring (controller mode hold) */}
-            <span style={{ position: 'relative', width: 18, height: 18, display: 'inline-flex',
-                           alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {/* Circular progress ring — shown while B is held */}
-              <AnimatePresence>
-                {bHoldActive && (
-                  <motion.svg
-                    key="b-ring"
-                    width={18} height={18}
-                    style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible',
-                             transform: 'rotate(-90deg)', transformOrigin: '9px 9px' }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.1 }}
-                  >
-                    <motion.circle
-                      cx={9} cy={9} r={10}
-                      fill="none"
-                      style={{ stroke: 'var(--ui-fg)' }}
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ duration: 1, ease: 'linear' }}
-                    />
-                  </motion.svg>
-                )}
-              </AnimatePresence>
-              {inputMode === 'controller' && (
+            {/* B icon with circular progress ring — controller mode only. In
+                keyboard mode it's omitted entirely so the text stays flush-left
+                (aligned with the hint lines below, at LOGO_LEFT). */}
+            {inputMode === 'controller' && (
+              <span style={{ position: 'relative', width: 18, height: 18, display: 'inline-flex',
+                             alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {/* Circular progress ring — shown while B is held */}
+                <AnimatePresence>
+                  {bHoldActive && (
+                    <motion.svg
+                      key="b-ring"
+                      width={18} height={18}
+                      style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible',
+                               transform: 'rotate(-90deg)', transformOrigin: '9px 9px' }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.1 }}
+                    >
+                      <motion.circle
+                        cx={9} cy={9} r={10}
+                        fill="none"
+                        style={{ stroke: 'var(--ui-fg)' }}
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: 1 }}
+                        transition={{ duration: 1, ease: 'linear' }}
+                      />
+                    </motion.svg>
+                  )}
+                </AnimatePresence>
                 <Icon name="controller-B" size={FS_SMALL} color="var(--ui-complement)" style={{ opacity: 0.5 }} />
-              )}
-            </span>
+              </span>
+            )}
             <span style={{ fontSize: FS_SMALL, fontFamily: FONT, color: 'var(--ui-fg)',
                            lineHeight: 1, whiteSpace: 'nowrap', letterSpacing: '0.04em' }}>
               {inputMode === 'controller' ? 'Hold B to go back to home' : 'back to'}
@@ -4044,7 +4046,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
             initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
             style={{
-              position: 'absolute', top: TOP_INFO_TOP, left: LOGO_LEFT,
+              // When the "back to Board" button occupies the top-left, drop the
+              // info/hint one line so the two never overlap.
+              position: 'absolute', top: TOP_INFO_TOP + (fromBoard && isLibraryPanel ? 26 : 0), left: LOGO_LEFT,
               // Full left-side width, up to the Z column / right-side panels.
               right: `calc(100% - ${Z_LEFT - 16}px)`,
               display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 10,
@@ -4086,7 +4090,9 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
             initial={{ opacity: 0, y: -6 }} animate={{ opacity: 0.45, y: 0 }} exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
             style={{
-              position: 'absolute', top: TOP_INFO_TOP, left: LOGO_LEFT,
+              // When the "back to Board" button occupies the top-left, drop the
+              // info/hint one line so the two never overlap.
+              position: 'absolute', top: TOP_INFO_TOP + (fromBoard && isLibraryPanel ? 26 : 0), left: LOGO_LEFT,
               // Full left-side width, up to the Z column / right-side panels.
               right: `calc(100% - ${Z_LEFT - 16}px)`,
               display: 'flex', flexDirection: 'column', gap: 6,
