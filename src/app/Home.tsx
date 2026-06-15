@@ -286,21 +286,21 @@ const CATEGORIES: Category[] = [
     preview: '/previews/library.mp4', previewFit: 'cover',
     xItems: [
       { label: 'Movement',    iconName: 'movement',    preview: '/previews/movement-final.mp4', previewFit: 'cover', zItems: [
-        { label: 'Rotation', wItems: makeSounds('M.R',  5, n => `Rotation-${n}`),   preview: '/previews/rotation-general.mp4', previewFit: 'cover' },
-        { label: 'Space',    wItems: makeSounds('M.SP', 5, n => `Space-${n}`), preview: '/previews/space.mp4', previewFit: 'cover' },
+        { label: 'Rotation', wItems: makeSounds('M.R',  9, n => `Rotation-${n}`),   preview: '/previews/rotation-general.mp4', previewFit: 'cover' },
+        { label: 'Space',    wItems: makeSounds('M.SP', 10, n => `Space-${n}`), preview: '/previews/space.mp4', previewFit: 'cover' },
       ]},
       { label: 'Camera',      iconName: 'camera',      preview: '/previews/camera.mp4', previewFit: 'cover', zItems: [
         { label: 'Zoom',  wItems: makeSounds('C.ZM', 2, n => `Zoom-${n}`), preview: '/previews/zoom-mod.mp4', previewFit: 'cover' },
         { label: 'Depth', wItems: [], preview: '/previews/focus-mod.mp4', previewFit: 'cover' },
-        { label: 'Cuts',  wItems: makeSounds('C.CT', 3, n => `Cuts-${n}`), preview: '/previews/cuts-mod.mp4', previewFit: 'cover' },
+        { label: 'Cuts',  wItems: makeSounds('C.CT', 4, n => `Cuts-${n}`), preview: '/previews/cuts-mod.mp4', previewFit: 'cover' },
       ]},
       { label: 'Effects',     iconName: 'effects',     preview: '/previews/effects-general.mp4', previewFit: 'cover', zItems: [
         { label: 'Glitch', wItems: makeSounds('E.GL', 5, n => `Glitch-${n}`), preview: '/previews/glitch.mp4', previewFit: 'cover' },
-        { label: 'Strobe', wItems: makeSounds('E.ST', 2, n => `Strobe-${n}`), preview: '/previews/strobe.mp4', previewFit: 'cover' },
+        { label: 'Strobe', wItems: makeSounds('E.ST', 3, n => `Strobe-${n}`), preview: '/previews/strobe.mp4', previewFit: 'cover' },
       ]},
       { label: 'Backing',     iconName: 'backing', preview: '/previews/backing-mod.mp4', previewFit: 'cover', zItems: [
-        { label: 'Ambient', wItems: makeSounds('B.A', 7, n => `Ambient-${n}`), preview: '/previews/ambient-mod.mp4', previewFit: 'cover' },
-        { label: 'Voices',  wItems: makeSounds('B.V', 3, n => `Voices-${n}`), preview: '/previews/voices-mod.mp4', previewFit: 'cover' },
+        { label: 'Ambient', wItems: makeSounds('B.A', 11, n => `Ambient-${n}`), preview: '/previews/ambient-mod.mp4', previewFit: 'cover' },
+        { label: 'Voices',  wItems: makeSounds('B.V', 4, n => `Voices-${n}`), preview: '/previews/voices-mod.mp4', previewFit: 'cover' },
       ]},
     ],
   },
@@ -739,18 +739,35 @@ function TagLabel({ label, onClick }: {
 // falls back to an accent square on error.
 function MoodboardVideoItem({ src, isActive, isMuted, fullView = false }: { src: string; isActive: boolean; isMuted: boolean; fullView?: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
+  // Latest desired mute state, read inside the async play() callback so it never
+  // applies a stale value captured when playback started.
+  const mutedRef = useRef(isMuted);
+  mutedRef.current = isMuted;
 
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    if (isActive) v.play().catch(() => {});
-    else v.pause();
-  }, [isActive]);
+    if (isActive) {
+      // Always start playback MUTED: browsers block unmuted video autoplay
+      // without a user gesture (a hover doesn't count), which would otherwise
+      // leave the tile stuck on a black "failed to autoplay" frame. Once
+      // playback has actually started we restore the real mute state —
+      // unmuting an already-playing element is allowed and never blocks.
+      v.muted = true;
+      const p = v.play();
+      if (p && typeof p.then === 'function') p.then(() => { v.muted = mutedRef.current; }).catch(() => {});
+      else v.muted = mutedRef.current;
+    } else {
+      v.pause();
+    }
+  }, [isActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    v.muted = isMuted;
+    // Only toggle mute on a live (playing) element — muting/unmuting a paused or
+    // still-loading video can drop it onto a black frame.
+    if (!v.paused) v.muted = isMuted;
   }, [isMuted]);
 
   return (
@@ -924,9 +941,10 @@ function XmbCol({ left, items, focused, isActive, isLocked, onSelect, panelMode 
 // Same pattern as XmbCol's nav brackets: a fixed-width slot with "(" / ")" that
 // fade in on focus, and the content sliding to the horizontal centre between
 // them when active (left-aligned otherwise).
-function FxBracket({ children, active, color = 'var(--ui-fg)', onClick, onWheel,
+function FxBracket({ children, active, color = 'var(--ui-fg)', onClick, onDoubleClick, onWheel,
                     onPointerDown, onPointerMove, onPointerUp, cursor, width = NAV_BRACKET_W }: {
   children: ReactNode; active: boolean; color?: string; onClick?: () => void;
+  onDoubleClick?: () => void;
   onWheel?: (e: ReactWheelEvent) => void;
   onPointerDown?: (e: ReactPointerEvent) => void;
   onPointerMove?: (e: ReactPointerEvent) => void;
@@ -934,7 +952,7 @@ function FxBracket({ children, active, color = 'var(--ui-fg)', onClick, onWheel,
   cursor?: string; width?: number;
 }) {
   return (
-    <span onClick={onClick} onWheel={onWheel}
+    <span onClick={onClick} onDoubleClick={onDoubleClick} onWheel={onWheel}
       onPointerDown={onPointerDown} onPointerMove={onPointerMove}
       onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
       style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35em',
@@ -1210,6 +1228,17 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
   // parameter (FX_PARAM_SEQ), ↑/↓ adjust the focused parameter's value directly.
   const [fxFocus, setFxFocus] = useState<number | null>(null);
   const [fxParam, setFxParam] = useState(0);    // which sub-value of the focused group is highlighted
+  // Direct numeric entry for the focused FX param — opened by double-clicking a
+  // value or by typing a digit while it's focused. `fxEditActiveRef` is a
+  // synchronous guard so Escape/Enter and the input's onBlur (fired on unmount)
+  // never both apply the edit.
+  const [fxEditing, setFxEditing] = useState<{ group: number; param: number } | null>(null);
+  const [fxEditValue, setFxEditValue] = useState('');
+  const fxEditInputRef = useRef<HTMLInputElement>(null);
+  const fxEditActiveRef = useRef(false);
+  // Whether the input should select-all on focus (double-click, replace the
+  // whole value) vs. place the cursor at the end (digit keypress, append).
+  const fxEditSelectAllRef = useRef(false);
   // Brief "FX Mode!" / "Selection Mode!" overlay flash — fires whenever fxFocus
   // crosses the null ↔ active boundary, regardless of trigger source
   // (Enter/Tab, gamepad X, transport-bar click).
@@ -1231,6 +1260,20 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     }
     prevFxFocusRef.current = fxFocus;
   }, [fxFocus]);
+  // FX direct-entry: focus the input as soon as it mounts — select-all on
+  // double-click (so typing replaces the value), cursor-at-end on a digit
+  // keypress (so typing appends to the seeded digit).
+  useEffect(() => {
+    if (!fxEditing) return;
+    const id = requestAnimationFrame(() => {
+      const el = fxEditInputRef.current;
+      if (!el) return;
+      el.focus();
+      if (fxEditSelectAllRef.current) el.select();
+      else el.setSelectionRange(el.value.length, el.value.length);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [fxEditing]);
   // ISAMO logo click (App-level) → return to the home idle root (clear navigation).
   useEffect(() => {
     if (homeReset <= 0) return;
@@ -1272,9 +1315,11 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
   const [hoveredSound,        setHoveredSound]        = useState<{ idx: number; part: 'title' | 'download' } | null>(null);
   const [hoveredMoodboardIdx, setHoveredMoodboardIdx] = useState<number | null>(null);
   const [boardVideos, setBoardVideos] = useState(() => [...INITIAL_BOARD_VIDEOS]);
-  const [mutedVideos,         setMutedVideos]         = useState<Set<number>>(
-    () => new Set(INITIAL_BOARD_VIDEOS.map((_, i) => i))   // tutti muted di default
-  );
+  // Per-video MANUAL mute overrides (only meaningful for the selected clip).
+  // Sound follows selection: the selected video plays with audio by default,
+  // hover is a muted preview. This set lets the user explicitly mute the
+  // selected clip; empty by default so selecting a clip always brings sound.
+  const [mutedVideos,         setMutedVideos]         = useState<Set<number>>(() => new Set());
   const [boardCols,           setBoardCols]           = useState<1 | 2 | 4>(2);
   // Narrow viewport → Board is single-column only (2/4 layouts unavailable).
   const [isNarrow, setIsNarrow] = useState(() => window.innerWidth < BOARD_SINGLE_COL_MAX_W);
@@ -1773,6 +1818,57 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     }
   };
 
+  // Effects panel: describes the directly-typeable value for group `g`'s
+  // sub-parameter `p` (display units, e.g. percent) — or null if that
+  // parameter isn't a free-form number (e.g. the LFO waveform cycles names).
+  const fxParamSpec = (g: number, p: number): { value: number; min: number; max: number; integer?: boolean; signed?: boolean; set: (n: number) => void } | null => {
+    switch (g) {
+      case 0: // VOLUME — %
+        return { value: volume, min: VOLUME_MIN, max: VOLUME_MAX, integer: true, set: v => setVolume(v) };
+      case 1: // RIVERBERO — wet 0..1 shown as %
+        return { value: Math.round(reverbWet * 100), min: 0, max: 100, integer: true, set: v => setReverbWet(Math.max(0, Math.min(1, v / 100))) };
+      case 2: // SINISTRA/DESTRA — pan -1..1 shown as -100..100 (negative = L, positive = R)
+        return { value: Math.round(pan * 100), min: -100, max: 100, integer: true, signed: true, set: v => setPan(Math.max(-1, Math.min(1, v / 100))) };
+      case 3: // SPECTRAL TIME — dry/wet 0..1 shown as % (param 0), time in ms (param 1)
+        if (p === 0) return { value: Math.round(spectralWet * 100), min: 0, max: 100, integer: true, set: v => setSpectralWet(Math.max(0, Math.min(1, v / 100))) };
+        return { value: spectralTimeMs, min: SPECTRAL_TIME_MIN, max: SPECTRAL_TIME_MAX, integer: true, set: v => setSpectralTimeMs(Math.max(SPECTRAL_TIME_MIN, Math.min(SPECTRAL_TIME_MAX, v))) };
+      case 4: // FLANGER — wet 0..1 shown as % (param 0), voices 1..MAGIC_MAX_V (param 1)
+        if (p === 0) return { value: Math.round(magicWet * 100), min: 0, max: 100, integer: true, set: v => setMagicWet(Math.max(0, Math.min(1, v / 100))) };
+        return { value: magicVoices, min: 1, max: MAGIC_MAX_V, integer: true, set: v => setMagicVoices(Math.max(1, Math.min(MAGIC_MAX_V, v))) };
+      case 5: // LFO — p=0: waveform name, not numeric; p=1: rate 0..100
+        if (p === 0) return null;
+        return { value: lfoRate, min: 0, max: 100, integer: true, set: v => setLfoRate(Math.max(0, Math.min(100, v))) };
+      default:
+        return null;
+    }
+  };
+
+  // Open direct-entry edit mode for FX group `g` / param `p`, seeded with `value`.
+  // `selectAll` controls the initial cursor: true selects the whole value
+  // (double-click → typing replaces it), false places the cursor at the end
+  // (digit keypress → typing continues from the seeded digit).
+  const openFxEdit = (g: number, p: number, value: string, selectAll: boolean) => {
+    fxEditActiveRef.current = true;
+    fxEditSelectAllRef.current = selectAll;
+    setFxEditValue(value);
+    setFxEditing({ group: g, param: p });
+  };
+  // Close direct-entry edit mode. `commit` applies `value` to the param via
+  // fxParamSpec; the ref guard ensures Escape/Enter and the resulting onBlur
+  // (fired when the input unmounts) don't both apply the value.
+  const closeFxEdit = (commit: boolean, editing: { group: number; param: number } | null, value: string) => {
+    if (!fxEditActiveRef.current) return;
+    fxEditActiveRef.current = false;
+    setFxEditing(null);
+    if (!commit || !editing) return;
+    const spec = fxParamSpec(editing.group, editing.param);
+    if (!spec) return;
+    const n = parseFloat(value);
+    if (Number.isNaN(n)) return;
+    initFxChain();
+    spec.set(spec.integer ? Math.round(n) : n);
+  };
+
   // Deep-link: jump directly to a sound from a board pill click.
   // All four setters fire in the same event → React 18 batches them into one render.
   const navigateToSound = (tag: string) => {
@@ -1840,6 +1936,15 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     })();
 
     onKeyRef.current = (e: KeyboardEvent) => {
+      // FX direct-entry input is open: Enter commits, Escape cancels, every
+      // other key is left alone for the <input> itself to handle (typing,
+      // backspace, cursor movement, ...).
+      if (fxEditing) {
+        if (e.key === 'Enter')  { e.preventDefault(); closeFxEdit(true,  fxEditing, fxEditValue); return; }
+        if (e.key === 'Escape') { e.preventDefault(); closeFxEdit(false, fxEditing, fxEditValue); return; }
+        return;
+      }
+
       // Play a keyboard sound on every non-modifier keypress, unless a search
       // input is already focused (it has its own onKeyDown sound handler).
       const isSearchFocused =
@@ -1874,6 +1979,17 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
         if (e.key === 'Escape') { artistSearchInputRef.current?.blur(); return; }
         if (e.key === 'Backspace' && artistSearch === '') { artistSearchInputRef.current?.blur(); return; }
         if (!e.key.startsWith('Arrow')) return;   // all directional arrows navigate results
+      }
+
+      // FX panel: typing a digit (or '-' for the pan param) on the focused
+      // value opens direct-entry mode, seeded with that keystroke.
+      if (isLibraryPanel && focusedW !== null && fxFocus !== null) {
+        const spec = fxParamSpec(fxFocus, fxParam);
+        if (spec && (/^[0-9]$/.test(e.key) || (spec.signed && e.key === '-'))) {
+          e.preventDefault();
+          openFxEdit(fxFocus, fxParam, e.key, false);
+          return;
+        }
       }
 
       switch (e.key) {
@@ -2528,16 +2644,6 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     }
   }, [artistSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Re-mute a video when it loses focus (it's no longer in playback)
-  const prevFocusedW = useRef<number | null>(null);
-  useEffect(() => {
-    const prev = prevFocusedW.current;
-    if (prev !== null && prev !== focusedW) {
-      setMutedVideos(m => new Set([...m, prev]));
-    }
-    prevFocusedW.current = focusedW;
-  }, [focusedW]);
-
   // ── Scroll moodboard: centre the selected item on the XMB columns' axis ─
   // Instant scroll (not smooth): native smooth scrolling is rAF-driven and gets
   // throttled/paused in background tabs, leaving the item off-axis. Re-centre on
@@ -2872,11 +2978,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
     const name = file.name.replace(/\.[^.]+$/, ''); // strip extension
     const tags = isamoTags(file.name);
     const newVideo = { id: String(Date.now()), src: url, label: name, year: new Date().getFullYear(), tags };
-    setBoardVideos(prev => {
-      const newIdx = prev.length;
-      setMutedVideos(m => new Set([...m, newIdx])); // start muted
-      return [...prev, newVideo];
-    });
+    setBoardVideos(prev => [...prev, newVideo]);
     // Brief success flash
     setBoardUploadSuccess(true);
     setTimeout(() => setBoardUploadSuccess(false), 2200);
@@ -5193,9 +5295,17 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                 const isSelected = focusedW === idx;
                 const isHovered  = hoveredMoodboardIdx === idx;
                 const active     = isSelected || isHovered;
+                // Playback: the hovered clip plays a (muted) preview; when nothing
+                // is hovered, the selected clip plays. Exclusive, so hovering pauses
+                // the selected clip — no sound leaks through while previewing.
+                const isPlaying  = isHovered || (isSelected && hoveredMoodboardIdx === null);
                 // Color (grayscale off): keyboard select requires focusedZ entry, hover is immediate
                 const isColorful = (focusedZ !== null && isSelected) || isHovered;
-                const isMuted = mutedVideos.has(idx) || generalMuted;
+                // Audio follows SELECTION, not hover: only the selected clip has
+                // sound (on by default). Hover is a muted preview, so a hovered
+                // clip stays silent unless it's also the selected one. `mutedVideos`
+                // is the manual mute toggle for the selected clip.
+                const isMuted = generalMuted || !isSelected || mutedVideos.has(idx);
                 const select = () => { if (focusedZ === null) setFocusedZ(0); setFocusedW(idx); };
                 return (
                   <motion.div
@@ -5250,13 +5360,16 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                       onClick={e => {
                         if (e.detail === 0) return;
                         e.stopPropagation();
-                        select();
+                        // First click selects the clip → brings sound on. Clicking
+                        // the already-selected clip toggles its manual mute.
+                        if (!isSelected) { select(); playUi('clickCursor'); return; }
                         setMutedVideos(prev => {
                           const next = new Set(prev);
                           if (next.has(idx)) { next.delete(idx); playUi('unmute'); }
                           else               { next.add(idx);    playUi('mute');   }
                           return next;
                         });
+                        flashMuteIcon(idx);
                       }}
                       style={{ flex: 1, position: 'relative', cursor: 'pointer' }}
                     >
@@ -5265,7 +5378,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                         animate={{ filter: `grayscale(${isColorful ? 0 : 100}%)` }}
                         transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
                       >
-                        <MoodboardVideoItem src={v.src} isActive={isSelected} isMuted={isMuted} fullView={boardCols === 1} />
+                        <MoodboardVideoItem src={v.src} isActive={isPlaying} isMuted={isMuted} fullView={boardCols === 1} />
                       </motion.div>
 
                       {/* Mute icon overlay — `mixBlendMode` only while actually visible:
@@ -5455,8 +5568,13 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
             style={{
               position: 'absolute', inset: 0, pointerEvents: 'none',
               ...(isLibraryPanel ? {
-                maskImage: `linear-gradient(to bottom, transparent 0px, transparent calc(${ANCHOR_TOP} + 68px), black calc(${ANCHOR_TOP} + 76px))`,
-                WebkitMaskImage: `linear-gradient(to bottom, transparent 0px, transparent calc(${ANCHOR_TOP} + 68px), black calc(${ANCHOR_TOP} + 76px))`,
+                // Fade the list out *below* the search bar (its bottom edge sits at
+                // ANCHOR_TOP + 76px). The list paints over the search bar in DOM
+                // order, so keep it fully transparent until clear of that edge and
+                // fade in just above the closest context row (d=-1, top ≈ +86px),
+                // otherwise a row scrolling up pokes through over the search line.
+                maskImage: `linear-gradient(to bottom, transparent 0px, transparent calc(${ANCHOR_TOP} + 82px), black calc(${ANCHOR_TOP} + 90px))`,
+                WebkitMaskImage: `linear-gradient(to bottom, transparent 0px, transparent calc(${ANCHOR_TOP} + 82px), black calc(${ANCHOR_TOP} + 90px))`,
               } : {}),
             }}
           >
@@ -5674,6 +5792,8 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                         const active = fxFocus === group && fxParam === param;
                         const col = fxFocus !== null ? 'var(--ui-complement)' : 'var(--ui-fg)';
                         const focusHere = () => { initFxChain(); setFxFocus(group); setFxParam(param); };
+                        const spec = fxParamSpec(group, param);
+                        const editing = fxEditing?.group === group && fxEditing?.param === param;
                         return (
                           <FxBracket key={param} active={active} color={col} width={FX_VALUE_W}
                             cursor="ns-resize"
@@ -5684,6 +5804,12 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                               // steps it up (so toggles/cycles are fully mouse-driven).
                               if (active) { playUi('fxScroll'); adjustFxValue(group, param, 1); }
                               else focusHere();
+                            }}
+                            onDoubleClick={() => {
+                              // Double-click a numeric value to type it directly.
+                              if (!spec) return;
+                              focusHere();
+                              openFxEdit(group, param, String(spec.value), true);
                             }}
                             onWheel={e => {
                               // Scroll over any value to adjust it directly (up = +, down = −).
@@ -5709,10 +5835,26 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
                               try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
                               fxDragRef.current = null;
                             }}>
-                            <span style={{ fontSize: FS_SMALL, fontFamily: FONT, color: col,
-                              letterSpacing: '0.10em', lineHeight: 1, opacity: dim ? 0.38 : 1 }}>
-                              {content}
-                            </span>
+                            {editing ? (
+                              <input
+                                ref={fxEditInputRef}
+                                value={fxEditValue}
+                                onChange={e => {
+                                  const re = spec?.signed ? /^-?\d*$/ : /^\d*$/;
+                                  if (re.test(e.target.value)) setFxEditValue(e.target.value);
+                                }}
+                                onBlur={() => closeFxEdit(true, fxEditing, fxEditValue)}
+                                style={{ fontSize: FS_SMALL, fontFamily: FONT, color: col,
+                                  letterSpacing: '0.10em', lineHeight: 1, width: '3em',
+                                  background: 'transparent', border: 'none', outline: 'none',
+                                  borderBottom: `1px solid ${col}`, textAlign: 'center', padding: 0 }}
+                              />
+                            ) : (
+                              <span style={{ fontSize: FS_SMALL, fontFamily: FONT, color: col,
+                                letterSpacing: '0.10em', lineHeight: 1, opacity: dim ? 0.38 : 1 }}>
+                                {content}
+                              </span>
+                            )}
                           </FxBracket>
                         );
                       };
