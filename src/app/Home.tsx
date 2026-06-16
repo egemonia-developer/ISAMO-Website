@@ -1069,8 +1069,10 @@ function UploadText({ inputMode, lang = 'en' }: { inputMode?: 'keyboard' | 'cont
       fontFamily:    FONT,
       whiteSpace:    'pre-line',
     }}>
-      <Icon name={inputMode === 'controller' ? 'controller-Y' : 'key-u'} size="1em"
-        color="var(--ui-complement)" style={{ verticalAlign: 'middle', marginRight: '0.25em' }} />
+      {inputMode !== 'controller' && (
+        <Icon name="key-u" size="1em"
+          color="var(--ui-complement)" style={{ verticalAlign: 'middle', marginRight: '0.25em' }} />
+      )}
       {text}
     </p>
   );
@@ -3920,11 +3922,10 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
       }
     },
     onY: () => {
-      // Sound player (no video yet) → upload a video; Board → cycle the "order by"
-      // category (mirrors C). Elsewhere: no-op — avoids silently reordering the
-      // board from unrelated screens (player-with-video, artists, idle…).
+      // Sound player → focus the search bar (mirrors the F key / B short-press);
+      // Board → cycle the "order by" category (mirrors C).
       if (isLibraryPanel && focusedW !== null) {
-        if (!videoUrl) videoUploadRef.current?.click();
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F', bubbles: true }));
       } else if (isMoodboard) {
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'C', bubbles: true }));
       }
@@ -4265,7 +4266,7 @@ export function Home({ onBack, onControllerInput, inputMode = 'keyboard', genera
               pointerEvents: 'auto',
             }}
           >
-            <Icon name={inputMode === 'controller' ? 'controller-B' : 'key-f'} size={FS_SMALL} color="var(--ui-complement)" />
+            <Icon name={inputMode === 'controller' ? 'controller-Y' : 'key-f'} size={FS_SMALL} color="var(--ui-complement)" />
             <input
               ref={playerSearchInputRef}
               value={playerSearch}
