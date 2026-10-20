@@ -226,6 +226,7 @@ export default function App() {
   const [muteAllHovered, setMuteAllHovered] = useState(false);
   const [logoHovered,   setLogoHovered]   = useState(false);
   const [homeReset,     setHomeReset]     = useState(0); // bump → Home returns to its idle root
+  const [standbyActive, setStandbyActive] = useState(false);
   const [lang, setLang] = useState<Lang>(
     () => (localStorage.getItem('isamo-lang') as Lang | null) ?? 'en'
   );
@@ -275,6 +276,8 @@ export default function App() {
   const cursorVisibleRef = useRef(false);       // mirror of cursorVisible for RAF callbacks
   const cursorHoveredRef = useRef(false);       // mirror of cursorHovered for RAF callbacks
   const idleTimerRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const standbyTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const standbyActiveRef = useRef(false);
   const prevHoverElRef   = useRef<Element | null>(null);
   const inputModeRef     = useRef<InputMode>('keyboard');
   const screenRef        = useRef<Screen>('wake');
@@ -387,6 +390,36 @@ export default function App() {
     window.addEventListener('click', onClick);
     return () => window.removeEventListener('click', onClick);
   }, []);
+
+  // ── Standby video — 90 s of inactivity on the Home screen ───────────────
+  useEffect(() => {
+    const IDLE_MS = 90_000;
+    if (screen !== 'home') {
+      if (standbyTimerRef.current) { clearTimeout(standbyTimerRef.current); standbyTimerRef.current = null; }
+      if (standbyActiveRef.current) { standbyActiveRef.current = false; setStandbyActive(false); }
+      return;
+    }
+    const schedule = () => {
+      if (standbyActiveRef.current) { standbyActiveRef.current = false; setStandbyActive(false); }
+      if (standbyTimerRef.current) clearTimeout(standbyTimerRef.current);
+      standbyTimerRef.current = setTimeout(() => {
+        standbyActiveRef.current = true;
+        setStandbyActive(true);
+      }, IDLE_MS);
+    };
+    schedule();
+    window.addEventListener('mousemove',   schedule);
+    window.addEventListener('keydown',     schedule);
+    window.addEventListener('pointerdown', schedule);
+    window.addEventListener('wheel',       schedule);
+    return () => {
+      window.removeEventListener('mousemove',   schedule);
+      window.removeEventListener('keydown',     schedule);
+      window.removeEventListener('pointerdown', schedule);
+      window.removeEventListener('wheel',       schedule);
+      if (standbyTimerRef.current) { clearTimeout(standbyTimerRef.current); standbyTimerRef.current = null; }
+    };
+  }, [screen]);
 
   const onControllerInput = useCallback(() => setInputMode('controller'), []);
 
@@ -645,6 +678,35 @@ export default function App() {
         {showIntro && <IntroTransition key="intro" onDone={() => { setScreen('home'); setShowIntro(false); }} />}
       </AnimatePresence>
 
+
+      {/* ── Standby video overlay ────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {standbyActive && (
+          <motion.div
+            key="standby"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.5, ease: 'easeInOut' }}
+            style={{
+              position:      'fixed',
+              inset:          0,
+              zIndex:         99990,
+              pointerEvents: 'none',
+              background:    '#000',
+            }}
+          >
+            <video
+              src="/standby.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Gamepad cursor ─────────────────────────────────────────────────────── */}
       <div

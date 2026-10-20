@@ -5,3 +5,4 @@ dist/
 .backup/
 .claude/
 *.log
+public/standby.mp4

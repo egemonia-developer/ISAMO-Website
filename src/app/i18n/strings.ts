@@ -77,8 +77,6 @@ const EN: LangStrings = {
     "(ISAMO !) invites the user to explore the sound bank, categorised on the basis of " +
       "movements and archetypes derived directly from the field of motion graphics. " +
       "Each sound has been meticulously crafted to best represent these characteristics.",
-    'FUCK BENJAMIN NETHANYAHU !!!!!!!',
-    "I'm sorry. I had to.",
     "(ISAMO !) allows users to play, edit and download the sounds available " +
       "directly in-app. The Library section implies no copyright restrictions.",
     "You can upload your own videos in the Sound Player section in order to get " +
@@ -88,7 +86,6 @@ const EN: LangStrings = {
     'enough',
     'please',
     'turn up the volume, coward',
-    'NOG7 14 JUNE 2026 !',
     "I have nothing more to tell you in this version of (ISAMO !); enjoy using the app!",
   ],
 
@@ -181,8 +178,6 @@ const IT: LangStrings = {
       "movimenti e archetipi derivanti direttamente dall'ambito della grafica animata. " +
       "Ogni suono è stato meticolosamente realizzato allo scopo di rappresentare al meglio " +
       "tali caratteristiche.",
-    'FUCK BENJAMIN NETHANYAHU !!!!!!!',
-    'Scusami. Dovevo.',
     "(ISAMO !) permette agli utenti di riprodurre, modificare e scaricare i suoni presenti " +
       "direttamente in-app. La sezione Libreria non implica limiti di diritti d'autore.",
     "È possibile uplodare i propri video nella sezione Sound Player allo scopo di avere " +
@@ -192,7 +187,6 @@ const IT: LangStrings = {
     'basta',
     'ti prego',
     'alza il volume, codardo',
-    'NOG7 14 JUIN 2026 !',
     "Non ho più nulla da raccontarti in questa versione di (ISAMO !); divertiti a utilizzare l'app!",
   ],
 
@@ -286,8 +280,6 @@ const FR: LangStrings = {
     "(ISAMO !) propose à l'utilisateur d'explorer la banque de sons, catégorisée selon des " +
       "mouvements et archétypes issus directement du domaine du motion design. Chaque son " +
       "a été méticuleusement réalisé pour représenter au mieux ces caractéristiques.",
-    'FUCK BENJAMIN NETHANYAHU !!!!!!!',
-    "Désolé. Je devais le faire.",
     "(ISAMO !) permet aux utilisateurs d'écouter, modifier et télécharger les sons disponibles " +
       "directement dans l'application. La section Bibliothèque n'implique aucune limite de " +
       "droits d'auteur.",
@@ -298,7 +290,6 @@ const FR: LangStrings = {
     'stop',
     "je t'en supplie",
     'monte le son, lâche',
-    'NOG7 14 JUIN 2026 !',
     "Je n'ai plus rien à te raconter dans cette version d'(ISAMO !) ; amuse-toi bien avec l'app !",
   ],
 
@@ -393,8 +384,6 @@ const JP: LangStrings = {
     '(ISAMO !)は、モーショングラフィックスの分野から直接派生した動きとアーキタイプに' +
       '基づいて分類されたサウンドバンクを探索することをユーザーに提案します。' +
       '各サウンドは、その特性を最大限に表現するために緻密に制作されています。',
-    'FUCK BENJAMIN NETHANYAHU !!!!!!!',
-    'ごめん。仕方なかった。',
     '(ISAMO !)では、アプリ内で直接サウンドを再生、編集、ダウンロードできます。' +
       'ライブラリセクションには著作権の制限はありません。',
     'サウンドプレーヤーセクションでは、自分の動画をアップロードして、作品に' +
@@ -404,7 +393,6 @@ const JP: LangStrings = {
     'もう十分だ',
     '頼むから',
     '音量を上げろ、意気地なし',
-    'NOG7 2026年6月14日！',
     'このバージョンの(ISAMO !)ではもう話すことがありません。アプリを楽しんでください！',
   ],
 
